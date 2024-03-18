@@ -1,6 +1,8 @@
 import {
   Body,
   Controller,
+  HttpStatus,
+  ParseFilePipeBuilder,
   Post,
   UploadedFile,
   UseInterceptors,
@@ -16,7 +18,18 @@ export class AuthController {
   @Post('register')
   @UseInterceptors(FileInterceptor('file'))
   async register(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addMaxSizeValidator({ maxSize: 2 * 1024 * 1024 })
+        .addFileTypeValidator({
+          fileType: '.(png|jpe?g|webp)$',
+        })
+        .build({
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+          fileIsRequired: false,
+        }),
+    )
+    file: Express.Multer.File,
     @Body() signupBodyDto: SignupBodyDto,
   ) {
     const res = await this.authService.registerUser(signupBodyDto, file);
