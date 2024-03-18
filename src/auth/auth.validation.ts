@@ -1,20 +1,12 @@
 import { z } from 'zod';
 
-const FileFormField = z.object({
-  type: z.string(),
-  fieldname: z.string(),
-  mimetype: z.string(),
-  value: z.string(),
-});
-
 export const SignUpBodySchema = z.object({
-  firstName: FileFormField,
-  lastName: FileFormField,
-  age: FileFormField,
-  email: FileFormField,
-  phoneNumber: FileFormField,
-  password: FileFormField,
-  file: z.any(),
+  firstName: z.string(),
+  lastName: z.string(),
+  age: z.string(),
+  email: z.string(),
+  phoneNumber: z.string(),
+  password: z.string(),
 });
 
 export type SignupBodyDto = z.infer<typeof SignUpBodySchema>;

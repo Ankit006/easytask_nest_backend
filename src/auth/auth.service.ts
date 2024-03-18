@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ImageStorageService } from 'src/image-storage/image-storage.service';
@@ -17,19 +13,14 @@ export class AuthService {
     private ImageStoreService: ImageStorageService,
   ) {}
 
-  async registerUser(singupbodyDto: SignupBodyDto) {
-    const user = await this.userModel.findOne({ email: singupbodyDto.email });
-    if (user) {
-      throw new ConflictException('User already exist');
-    }
-
+  async registerUser(
+    singupbodyDto: SignupBodyDto,
+    file: Express.Multer.File | undefined,
+  ) {
     let logo: IStoreFile | null = null;
 
-    if (singupbodyDto.file) {
-      logo = await this.ImageStoreService.storeImage(
-        singupbodyDto.file,
-        'userProfilePic',
-      );
+    if (file) {
+      logo = await this.ImageStoreService.storeImage(file, 'userProfilePic');
     }
 
     try {
@@ -37,9 +28,10 @@ export class AuthService {
       await user.save();
       return user;
     } catch (err) {
-      throw new InternalServerErrorException(
-        'server error, unable to create user',
-      );
+      throw new InternalServerErrorException({
+        message: 'server error, unable to create user',
+        error: err,
+      });
     }
   }
 }

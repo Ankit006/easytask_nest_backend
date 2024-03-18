@@ -5,17 +5,21 @@ import {
 } from '@nestjs/common';
 import ImageKit from 'imagekit';
 import { IStoreFile } from './image.interface';
+import { Express } from 'express';
 @Injectable()
 export class ImageStorageService {
   constructor(@Inject('IMAGE_KIT') private imageKit: ImageKit) {}
 
-  async storeImage(file: any, folderName: string): Promise<IStoreFile> {
+  async storeImage(
+    file: Express.Multer.File,
+    folderName: string,
+  ): Promise<IStoreFile> {
     let image: IStoreFile | null = null;
     try {
-      const buffer = file.toBuffer();
+      const buffer = file.buffer;
       const res = await this.imageKit.upload({
         file: buffer,
-        fileName: file.filename,
+        fileName: file.originalname,
         folder: folderName,
       });
       image = {
@@ -23,9 +27,10 @@ export class ImageStorageService {
         url: res.url,
       };
     } catch (err) {
-      throw new InternalServerErrorException(
-        'Server error, unable to save the image',
-      );
+      console.log(err);
+      throw new InternalServerErrorException({
+        message: 'Server error, unable to save the image',
+      });
     }
     return image;
   }
