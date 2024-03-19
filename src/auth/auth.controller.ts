@@ -5,17 +5,20 @@ import {
   ParseFilePipeBuilder,
   Post,
   UploadedFile,
+  UseFilters,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
 import { SignupBodyDto } from './auth.validation';
+import { MongooseExceptionFilter } from 'src/exception/mongoose.exception';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
+  @UseFilters(MongooseExceptionFilter)
   @UseInterceptors(FileInterceptor('file'))
   async register(
     @UploadedFile(
