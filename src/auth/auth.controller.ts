@@ -4,18 +4,25 @@ import {
   HttpStatus,
   ParseFilePipeBuilder,
   Post,
+  Res,
+  UnprocessableEntityException,
   UploadedFile,
   UseFilters,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { AuthService } from './auth.service';
-import { SignupBodyDto } from './auth.validation';
 import { MongooseExceptionFilter } from 'src/exception/mongoose.exception';
-
+import { zodErrorFormatter } from 'src/utils';
+import { AuthService } from './auth.service';
+import { SignUpBodySchema, SignupBodyDto } from './auth.validation';
+import { Response } from 'express';
+import { ConfigService } from '@nestjs/config';
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private configService: ConfigService,
+  ) {}
 
   @Post('register')
   @UseFilters(MongooseExceptionFilter)
@@ -34,8 +41,23 @@ export class AuthController {
     )
     file: Express.Multer.File,
     @Body() signupBodyDto: SignupBodyDto,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    const res = await this.authService.registerUser(signupBodyDto, file);
-    return res;
+    const parsedBody = SignUpBodySchema.safeParse(signupBodyDto);
+    if (parsedBody.success === true) {
+      const result = await this.authService.registerUser(signupBodyDto, file);
+      res.cookie('authToken', result.token, {
+        domain: this.configService.get<string>('FRONTEND_URL'),
+        path: '/',
+        secure: true,
+        sameSite: 'lax',
+        httpOnly: true,
+        maxAge: 24 * 60 * 60,
+      });
+      return { message: 'You are registered successfully' };
+    } else {
+      const error = zodErrorFormatter(parsedBody.error.errors);
+      throw new UnprocessableEntityException(error);
+    }
   }
 }

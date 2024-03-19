@@ -34,7 +34,11 @@ export class MongooseExceptionFilter implements ExceptionFilter {
         }
 
         errorMessage = errorMessage + ' already exist';
-        response.status(HttpStatus.CONFLICT).json({ message: errorMessage });
+        response.status(HttpStatus.CONFLICT).json({
+          response: { message: errorMessage },
+          status: exception.status,
+          name: 'ConflictException',
+        });
       } else {
         response.status(exception.status).send(exception);
       }
