@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
   pgTable,
   serial,
@@ -8,7 +8,22 @@ import {
   timestamp,
   pgEnum,
   primaryKey,
+  date,
+  boolean,
 } from 'drizzle-orm/pg-core';
+
+/////////enums
+
+export const priorityEnum = pgEnum('prority', ['low', 'medium', 'high']);
+export const statusEnum = pgEnum('status', [
+  'active',
+  'completed',
+  'on hold',
+  'pending',
+  'canceled',
+  'under investigation',
+]);
+export const roleEnum = pgEnum('role', ['admin', 'moderator', 'member']);
 
 //////////   Users table
 export const users = pgTable('users', {
@@ -28,15 +43,15 @@ export const projects = pgTable('projects', {
   id: serial('id').primaryKey(),
   title: text('title').notNull(),
   description: text('description').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
 export const projectsRelations = relations(projects, ({ many }) => ({
   members: many(members),
+  sprints: many(sprints),
 }));
 
 /////////////////// member table
-
-export const roleEnum = pgEnum('role', ['admin', 'moderator', 'member']);
 
 export const members = pgTable('members', {
   id: serial('id').primaryKey(),
@@ -47,6 +62,7 @@ export const members = pgTable('members', {
     .references(() => projects.id, { onDelete: 'cascade' })
     .notNull(),
   role: roleEnum('role'),
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
 export const membersRelations = relations(members, ({ one, many }) => ({
@@ -59,6 +75,8 @@ export const membersRelations = relations(members, ({ one, many }) => ({
     references: [projects.id],
   }),
   membersToGroups: many(membersToGroups),
+  userStoriesToMembers: many(userStoriesToMembers),
+  tasksToMembers: many(tasksToMembers),
 }));
 
 ////////////// member groups
@@ -66,6 +84,7 @@ export const membersRelations = relations(members, ({ one, many }) => ({
 export const groups = pgTable('groups', {
   id: serial('id').primaryKey(),
   name: text('name'),
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
 export const groupsRelations = relations(groups, ({ many }) => ({
@@ -89,25 +108,174 @@ export const membersToGroups = pgTable(
   }),
 );
 
+// sprints
+
+export const sprints = pgTable('sprints', {
+  id: serial('id').primaryKey(),
+  startDate: date('start_date'),
+  endDate: date('end_date'),
+  description: text('description').notNull(),
+  isCompleted: boolean('is_completed').notNull().default(false),
+  projectId: integer('project_id').references(() => projects.id, {
+    onDelete: 'cascade',
+  }),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const sprintsRelations = relations(sprints, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [sprints.projectId],
+    references: [projects.id],
+  }),
+  userStories: many(userStories),
+}));
+
 // user story
 
-export const priorityEnum = pgEnum('prority', ['low', 'medium', 'high']);
-export const statusEnum = pgEnum('status', [
-  'active',
-  'completed',
-  'on hold',
-  'pending',
-  'overdue',
-  'canceled',
-  'under investigation',
-]);
 export const userStories = pgTable('user_stories', {
   id: serial('id').primaryKey(),
-  projctId: integer('project_id')
-    .notNull()
-    .references(() => projects.id, { onDelete: 'cascade' }),
+  sprintId: integer('sprint_id')
+    .references(() => sprints.id)
+    .notNull(),
   title: text('title'),
   description: text('description'),
-  priority: priorityEnum('priority'),
-  status: statusEnum('status'),
+  priority: priorityEnum('priority').notNull().default('low'),
+  status: statusEnum('status').notNull().default('pending'),
+  estimateDate: date('estimate_date'),
+  createdAt: timestamp('created_at').defaultNow(),
 });
+
+export const userStoriesRelations = relations(userStories, ({ one, many }) => ({
+  spring: one(sprints, {
+    fields: [userStories.sprintId],
+    references: [sprints.id],
+  }),
+  userStoriesToMembers: many(userStoriesToMembers),
+  tasks: many(tasks),
+}));
+
+///////// userstoriesToMembers
+
+export const userStoriesToMembers = pgTable(
+  'user_stories_to_members',
+  {
+    memberId: integer('member_id')
+      .references(() => members.id)
+      .notNull(),
+    userStoryId: integer('user_story_id')
+      .references(() => userStories.id)
+      .notNull(),
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.memberId, t.userStoryId] }),
+  }),
+);
+
+export const usertoriesToMembersRelations = relations(
+  userStoriesToMembers,
+  ({ one }) => ({
+    member: one(members, {
+      fields: [userStoriesToMembers.memberId],
+      references: [members.id],
+    }),
+    userStory: one(userStories, {
+      fields: [userStoriesToMembers.userStoryId],
+      references: [userStories.id],
+    }),
+  }),
+);
+
+/////////// tasks
+
+export const tasks = pgTable('tasks', {
+  id: serial('id').primaryKey(),
+  task: text('task').notNull(),
+  status: statusEnum('status').notNull().default('pending'),
+  priority: priorityEnum('priority').notNull().default('low'),
+  userStoryId: integer('user_story_id')
+    .notNull()
+    .references(() => userStories.id),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const tasksRelations = relations(tasks, ({ one, many }) => ({
+  userStory: one(userStories, {
+    fields: [tasks.userStoryId],
+    references: [userStories.id],
+  }),
+  tasksToMembers: many(tasksToMembers),
+  taskDetails: one(taskDetails, {
+    fields: [tasks.id],
+    references: [taskDetails.taskId],
+  }),
+  taskComments: many(taskComments),
+}));
+
+///// task details
+
+export const taskDetails = pgTable('task_details', {
+  id: serial('id').primaryKey(),
+  notes: text('notes'),
+  attachments: text('attachments')
+    .array()
+    .default(sql`'{}'::text[]`),
+  taskId: integer('task_id').references(() => tasks.id, {
+    onDelete: 'cascade',
+  }),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const taskDetailsRelatons = relations(taskDetails, ({ one }) => ({
+  task: one(tasks, {
+    fields: [taskDetails.taskId],
+    references: [tasks.id],
+  }),
+}));
+
+/////////// task commnets
+
+export const taskComments = pgTable('task_comments', {
+  id: serial('id').primaryKey(),
+  comment: text('comment').notNull(),
+  taskId: integer('task_id')
+    .references(() => tasks.id)
+    .notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const taskCommnetsRelations = relations(taskComments, ({ one }) => ({
+  task: one(tasks, {
+    fields: [taskComments.taskId],
+    references: [tasks.id],
+  }),
+}));
+
+///////// tasks to members
+
+export const tasksToMembers = pgTable(
+  'tasks_to_members',
+  {
+    taskId: integer('task_id')
+      .references(() => tasks.id, { onDelete: 'cascade' })
+      .notNull(),
+    memberId: integer('member_id')
+      .references(() => members.id, { onDelete: 'cascade' })
+      .notNull(),
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.memberId, t.taskId] }),
+  }),
+);
+
+export const tasksToMembersRelations = relations(tasksToMembers, ({ one }) => ({
+  task: one(tasks, {
+    fields: [tasksToMembers.taskId],
+    references: [tasks.id],
+  }),
+  member: one(members, {
+    fields: [tasksToMembers.memberId],
+    references: [members.id],
+  }),
+}));
