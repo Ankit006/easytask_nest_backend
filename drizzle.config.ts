@@ -3,7 +3,7 @@ import { Config } from 'drizzle-kit';
 
 export default {
   schema: './src/database/database.schema.ts',
-  out: './drizzle',
+  out: './src/database/migration',
   driver: 'pg',
   dbCredentials: {
     connectionString: process.env.POSTGRES_CONNECTION_STRING!,
