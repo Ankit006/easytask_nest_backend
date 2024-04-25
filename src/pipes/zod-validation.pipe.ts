@@ -1,8 +1,4 @@
-import {
-  HttpStatus,
-  PipeTransform,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+import { PipeTransform, UnprocessableEntityException } from '@nestjs/common';
 import { ZodSchema } from 'zod';
 
 export class ZodValidationPipe implements PipeTransform {
@@ -12,9 +8,8 @@ export class ZodValidationPipe implements PipeTransform {
       const parsedValue = this.schema.parse(value);
       return parsedValue;
     } catch (error) {
-      throw new UnprocessableEntityException({
-        status: HttpStatus.UNPROCESSABLE_ENTITY,
-        error,
+      throw new UnprocessableEntityException('Invalid data provided', {
+        cause: error,
       });
     }
   }
