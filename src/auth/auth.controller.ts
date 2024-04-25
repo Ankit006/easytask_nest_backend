@@ -9,11 +9,13 @@ import {
   createUserValidation,
   loginUserValidation,
 } from './auth.validator';
+import { Public } from './auth.metadata';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @Public()
   @Post('register')
   @UsePipes(new ZodValidationPipe(createUserValidation))
   async create(
@@ -23,6 +25,7 @@ export class AuthController {
     return await this.authService.register({ response, ...createUserDto });
   }
 
+  @Public()
   @Post('login')
   @UsePipes(new ZodValidationPipe(loginUserValidation))
   async login(
