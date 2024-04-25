@@ -1,7 +1,7 @@
 import * as schema from './database.schema';
 import dotenv from 'dotenv';
 import path from 'path';
-import postgres = require('postgres');
+import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { faker } from '@faker-js/faker';
 
