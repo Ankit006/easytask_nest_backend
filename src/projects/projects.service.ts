@@ -2,12 +2,20 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
-import { CreateProjectDto } from './projects.validation';
+
 import { customProvier } from 'src/constants';
 import { DB_CLIENT } from 'src/types';
-import { members, projects } from 'src/database/database.schema';
+import {
+  IProject,
+  ProjectDto,
+  members,
+  projects,
+} from 'src/database/database.schema';
 import { eq } from 'drizzle-orm';
+import { projectIdValidate } from './projects.validation';
 
 @Injectable()
 export class ProjectsService {
@@ -16,7 +24,7 @@ export class ProjectsService {
     title,
     description,
     request,
-  }: CreateProjectDto & { request: Request }) {
+  }: ProjectDto & { request: Request }): Promise<IProject> {
     try {
       const res = await this.dbClient
         .insert(projects)
@@ -38,7 +46,11 @@ export class ProjectsService {
     }
   }
 
-  async update({ id, title, description }: CreateProjectDto & { id: number }) {
+  async update({
+    id,
+    title,
+    description,
+  }: ProjectDto & { id: number }): Promise<IProject> {
     try {
       const res = await this.dbClient
         .update(projects)
@@ -54,7 +66,66 @@ export class ProjectsService {
     }
   }
 
-  async remove(id: number) {
+  async getAll(request: Request): Promise<IProject[]> {
+    try {
+      const projects: IProject[] = [];
+      const memberWithprojects = await this.dbClient.query.members.findMany({
+        where: (members, { and, eq }) =>
+          and(
+            eq(members.user_id, request['user'].id),
+            eq(members.role, 'admin'),
+          ),
+        with: {
+          projects: true,
+        },
+      });
+
+      for (const member of memberWithprojects) {
+        projects.push(member.projects);
+      }
+      return projects;
+    } catch (err) {
+      throw new InternalServerErrorException(
+        'Something went wrong in the server',
+        { cause: err },
+      );
+    }
+  }
+
+  async get(projectId: string): Promise<IProject> {
+    const parsedProjectId = projectIdValidate.safeParse(projectId);
+
+    if (parsedProjectId.success === false) {
+      throw new UnprocessableEntityException('Not a valid project id');
+    }
+    try {
+      const project = await this.dbClient.query.projects.findFirst({
+        where: eq(projects.id, parseInt(projectId)),
+      });
+      if (!project) {
+        throw new NotFoundException('No project found');
+      }
+      return project;
+    } catch (err) {
+      if (err.response && err.response.error) {
+        if (err.response.error === 'Not Found') {
+          throw new NotFoundException(err.response.message);
+        } else {
+          throw new InternalServerErrorException(
+            'Something went wrong in the server',
+            { cause: err },
+          );
+        }
+      }
+
+      throw new InternalServerErrorException(
+        'Something went wrong in the server',
+        { cause: err },
+      );
+    }
+  }
+
+  async remove({ id }: ProjectDto): Promise<IProject> {
     try {
       const res = await this.dbClient
         .delete(projects)
