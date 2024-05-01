@@ -18,21 +18,15 @@ export class AuthController {
   @Public()
   @Post('register')
   @UsePipes(new ZodValidationPipe(createUserValidation))
-  async create(
-    @Body() createUserDto: CreateUserDto,
-    @Res({ passthrough: true }) response: Response,
-  ) {
-    return await this.authService.register({ response, ...createUserDto });
+  async create(@Body() createUserDto: CreateUserDto) {
+    return await this.authService.register(createUserDto);
   }
 
   @Public()
   @Post('login')
   @UsePipes(new ZodValidationPipe(loginUserValidation))
-  async login(
-    @Body() loginUserDto: LoginUserDto,
-    @Res({ passthrough: true }) response: Response,
-  ) {
-    return await this.authService.login({ response, ...loginUserDto });
+  async login(@Body() loginUserDto: LoginUserDto) {
+    return await this.authService.login(loginUserDto);
   }
 
   @Post('logout')

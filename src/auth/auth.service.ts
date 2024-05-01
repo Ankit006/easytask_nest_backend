@@ -5,14 +5,14 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import argon from 'argon2';
 import { eq } from 'drizzle-orm';
+import { Response } from 'express';
 import { customProvier } from 'src/constants';
 import { users } from 'src/database/database.schema';
 import { DB_CLIENT } from 'src/types';
 import { CreateUserDto, LoginUserDto } from './auth.validator';
-import { Response } from 'express';
-import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
@@ -21,12 +21,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register({
-    email,
-    name,
-    password,
-    response,
-  }: CreateUserDto & { response: Response }) {
+  async register({ email, name, password }: CreateUserDto) {
     try {
       const user = await this.dbClient.query.users.findFirst({
         where: eq(users.email, email),
@@ -46,17 +41,18 @@ export class AuthService {
       const jwtPayload = res[0];
 
       const accessToken = await this.jwtService.signAsync(jwtPayload);
-      response.cookie('accessToken', accessToken, {
-        domain: 'localhost',
-        path: '/',
-        secure: true,
-        httpOnly: true,
-        sameSite: 'lax',
-        signed: true,
-        maxAge: 24 * 60 * 60,
-      });
       return { message: 'You are registered successfully', accessToken };
     } catch (error) {
+      if (error.response && error.response.error) {
+        if (error.response.error === 'Conflict') {
+          throw new ConflictException(error.response.message);
+        } else {
+          throw new InternalServerErrorException(
+            'Something went wrong in the server',
+            { cause: error },
+          );
+        }
+      }
       throw new InternalServerErrorException(
         'Something went wrong in the server',
         { cause: error },
@@ -64,11 +60,7 @@ export class AuthService {
     }
   }
 
-  async login({
-    email,
-    password,
-    response,
-  }: LoginUserDto & { response: Response }) {
+  async login({ email, password }: LoginUserDto) {
     try {
       const user = await this.dbClient.query.users.findFirst({
         where: eq(users.email, email),
@@ -81,15 +73,7 @@ export class AuthService {
       }
       const jwtPayload = { id: user.id, email: user.email };
       const accessToken = await this.jwtService.signAsync(jwtPayload);
-      response.cookie('accessToken', accessToken, {
-        domain: 'localhost',
-        path: '/',
-        secure: true,
-        httpOnly: true,
-        sameSite: 'lax',
-        signed: true,
-        maxAge: 24 * 60 * 60,
-      });
+
       return { message: 'You are registered successfully', accessToken };
     } catch (error) {
       if (error.response) {
