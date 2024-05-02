@@ -30,7 +30,6 @@ export class ProjectsService {
         .insert(projects)
         .values({ title, description })
         .returning();
-
       await this.dbClient.insert(members).values({
         user_id: request['user'].id,
         project_id: res[0].id,
@@ -39,6 +38,7 @@ export class ProjectsService {
 
       return res[0];
     } catch (err) {
+      console.log(err);
       throw new InternalServerErrorException(
         'Something went wrong in the server',
         { cause: err },

@@ -11,7 +11,7 @@ export class CacheService {
   async store(name: string, key: string, value: string) {
     try {
       await this.redis.hSet(name, key, value);
-    } catch {
+    } catch (err) {
       throw new Error('Something went wrong in the server');
     }
   }
@@ -20,7 +20,7 @@ export class CacheService {
     try {
       const res = await this.redis.hGet(name, key);
       return res;
-    } catch {
+    } catch (err) {
       throw new Error('Something went wrong in the server');
     }
   }

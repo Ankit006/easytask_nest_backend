@@ -1,7 +1,7 @@
-import { Body, Controller, Post, Res, UsePipes } from '@nestjs/common';
+import { Body, Controller, Post, UsePipes } from '@nestjs/common';
 
-import { Response } from 'express';
 import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
+import { Public } from './auth.metadata';
 import { AuthService } from './auth.service';
 import {
   CreateUserDto,
@@ -9,28 +9,21 @@ import {
   createUserValidation,
   loginUserValidation,
 } from './auth.validator';
-import { Public } from './auth.metadata';
 
+@Public()
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Public()
   @Post('register')
   @UsePipes(new ZodValidationPipe(createUserValidation))
   async create(@Body() createUserDto: CreateUserDto) {
     return await this.authService.register(createUserDto);
   }
 
-  @Public()
   @Post('login')
   @UsePipes(new ZodValidationPipe(loginUserValidation))
   async login(@Body() loginUserDto: LoginUserDto) {
     return await this.authService.login(loginUserDto);
-  }
-
-  @Post('logout')
-  logout(@Res({ passthrough: true }) response: Response) {
-    return this.authService.logout(response);
   }
 }

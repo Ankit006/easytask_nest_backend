@@ -14,5 +14,6 @@ const redisClient: Provider = {
 @Global()
 @Module({
   providers: [CacheService, redisClient],
+  exports: [CacheService],
 })
 export class CacheModule {}

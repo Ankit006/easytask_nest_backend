@@ -20,7 +20,7 @@ export const projectIdValidate = z.string().transform((val, ctx) => {
   if (isNaN(parsed)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: 'Not a valid project id',
+      message: 'Not a valid project',
     });
     return z.never;
   }

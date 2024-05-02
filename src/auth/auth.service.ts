@@ -8,7 +8,6 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import argon from 'argon2';
 import { eq } from 'drizzle-orm';
-import { Response } from 'express';
 import { customProvier } from 'src/constants';
 import { users } from 'src/database/database.schema';
 import { DB_CLIENT } from 'src/types';
@@ -41,6 +40,7 @@ export class AuthService {
       const jwtPayload = res[0];
 
       const accessToken = await this.jwtService.signAsync(jwtPayload);
+
       return { message: 'You are registered successfully', accessToken };
     } catch (error) {
       if (error.response && error.response.error) {
@@ -86,10 +86,5 @@ export class AuthService {
         { cause: error },
       );
     }
-  }
-
-  logout(response: Response) {
-    response.clearCookie('accessToken');
-    return { message: 'You are logged out' };
   }
 }
