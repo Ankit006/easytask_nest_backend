@@ -70,11 +70,7 @@ export class ProjectsService {
     try {
       const projects: IProject[] = [];
       const memberWithprojects = await this.dbClient.query.members.findMany({
-        where: (members, { and, eq }) =>
-          and(
-            eq(members.user_id, request['user'].id),
-            eq(members.role, 'admin'),
-          ),
+        where: eq(members.user_id, request['user'].id),
         with: {
           projects: true,
         },
