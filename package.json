@@ -36,6 +36,7 @@
     "imagekit": "^5.0.0",
     "mongoose": "^8.2.1",
     "postgres": "^3.4.4",
+    "redis": "^4.6.13",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "zod": "^3.22.4"

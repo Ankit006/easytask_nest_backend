@@ -11,7 +11,7 @@ import {
   date,
   boolean,
 } from 'drizzle-orm/pg-core';
-
+import { InferSelectModel, InferInsertModel } from 'drizzle-orm';
 /////////enums
 
 export const priorityEnum = pgEnum('prority', ['low', 'medium', 'high']);
@@ -46,6 +46,9 @@ export const projects = pgTable('projects', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+export type IProject = InferSelectModel<typeof projects>;
+export type ProjectDto = InferInsertModel<typeof projects>;
+
 export const projectsRelations = relations(projects, ({ many }) => ({
   members: many(members),
   sprints: many(sprints),
@@ -64,6 +67,9 @@ export const members = pgTable('members', {
   role: roleEnum('role'),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+export type IMember = InferSelectModel<typeof members>;
+export type MemberDto = InferInsertModel<typeof members>;
 
 export const membersRelations = relations(members, ({ one, many }) => ({
   users: one(users, {
@@ -121,6 +127,9 @@ export const sprints = pgTable('sprints', {
   }),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+export type ISprint = InferSelectModel<typeof sprints>;
+export type SprintDto = InferInsertModel<typeof sprints>;
 
 export const sprintsRelations = relations(sprints, ({ one, many }) => ({
   project: one(projects, {
