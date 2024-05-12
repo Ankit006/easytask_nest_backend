@@ -60,4 +60,5 @@ export class MembersService {
       );
     }
   }
+  async invite(projectId: string, userId: string) {}
 }
