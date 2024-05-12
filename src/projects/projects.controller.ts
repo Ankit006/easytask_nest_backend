@@ -10,6 +10,8 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { IProject, ProjectDto } from 'src/database/database.schema';
+import { MemberRoleGuard } from 'src/members/members.guard';
+import { MemberRoles } from 'src/members/members.role';
 import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
 import { ProjectsService } from './projects.service';
 import {
@@ -17,8 +19,6 @@ import {
   removeProjectValidation,
   updateProjectValidation,
 } from './projects.validation';
-import { MemberRoles } from 'src/members/members.role';
-import { MemberRoleGuard } from 'src/members/members.guard';
 
 @Controller('projects')
 @UseGuards(MemberRoleGuard)

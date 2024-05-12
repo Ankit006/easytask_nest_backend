@@ -128,6 +128,9 @@ export const sprints = pgTable('sprints', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+export type ISprint = InferSelectModel<typeof sprints>;
+export type SprintDto = InferInsertModel<typeof sprints>;
+
 export const sprintsRelations = relations(sprints, ({ one, many }) => ({
   project: one(projects, {
     fields: [sprints.projectId],

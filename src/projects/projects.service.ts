@@ -6,15 +6,15 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 
+import { eq } from 'drizzle-orm';
 import { customProvier } from 'src/constants';
-import { DB_CLIENT } from 'src/types';
 import {
   IProject,
   ProjectDto,
   members,
   projects,
 } from 'src/database/database.schema';
-import { eq } from 'drizzle-orm';
+import { DB_CLIENT } from 'src/types';
 import { projectIdValidate } from './projects.validation';
 
 @Injectable()
