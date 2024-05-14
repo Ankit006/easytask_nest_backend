@@ -9,6 +9,7 @@ import { MembersModule } from './members/members.module';
 import { ProjectsModule } from './projects/projects.module';
 import { SprintsModule } from './sprints/sprints.module';
 import { NotificationGatewayModule } from './notification-gateway/notification-gateway.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { NotificationGatewayModule } from './notification-gateway/notification-g
     MembersModule,
     SprintsModule,
     NotificationGatewayModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
