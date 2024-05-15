@@ -3,17 +3,19 @@ import {
   OnGatewayConnection,
   SubscribeMessage,
   WebSocketGateway,
-  WsException,
+  WebSocketServer,
 } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
 import { validateSocketAuth } from './notification-gateway.validation';
 
-@WebSocketGateway()
+@WebSocketGateway({ cors: true })
 export class NotificationGatewayGateway implements OnGatewayConnection {
+  @WebSocketServer()
+  io: Socket;
   handleConnection(client: Socket) {
     const validAuth = validateSocketAuth.safeParse(client.handshake.auth);
     if (!validAuth.success) {
-      throw new WsException('Unbale to connect');
+      client.disconnect(true);
     } else {
       client.join(validAuth.data.user_id.toString());
     }
@@ -21,6 +23,6 @@ export class NotificationGatewayGateway implements OnGatewayConnection {
 
   @SubscribeMessage('message')
   onNewMessage(@MessageBody() body: any) {
-    console.log(body);
+    return body;
   }
 }
