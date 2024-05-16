@@ -32,4 +32,28 @@ export class CacheService {
       throw new Error('Something went wrong in the server');
     }
   }
+
+  async listPush(key: string, value: string) {
+    try {
+      await this.redis.lPush(key, value);
+    } catch {
+      throw new Error('Something went wrong in the server');
+    }
+  }
+
+  async getListValues(key: string) {
+    try {
+      return await this.redis.lRange(key, 0, -1);
+    } catch {
+      throw new Error('Something went wrong in the server');
+    }
+  }
+
+  async removeCache(key: string) {
+    try {
+      await this.redis.del(key);
+    } catch {
+      throw new Error('Something went wrong in the server');
+    }
+  }
 }

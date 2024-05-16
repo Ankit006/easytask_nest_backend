@@ -6,16 +6,20 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { CacheService } from 'src/cache/cache.service';
-import { customProvier } from 'src/constants';
+import { customProvier, redisCacheKey } from 'src/constants';
 import { IMember } from 'src/database/database.schema';
+import { NotificationGatewayGateway } from 'src/notification-gateway/notification-gateway.gateway';
 import { projectIdValidate } from 'src/projects/projects.validation';
 import { DB_CLIENT } from 'src/types';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class MembersService {
   constructor(
     @Inject(customProvier.DB_CLIENT) private dbClient: DB_CLIENT,
     private cacheService: CacheService,
+    private notificationGatewayGateway: NotificationGatewayGateway,
+    private userService: UsersService,
   ) {}
 
   async member(request: Request, projectId: string) {
@@ -26,7 +30,7 @@ export class MembersService {
     try {
       const cachedMember = await this.cacheService.get(
         `${request['user'].id}`,
-        `${projectId}:member`,
+        redisCacheKey(projectId).member,
       );
       if (cachedMember) {
         return JSON.parse(cachedMember) as IMember;
@@ -48,7 +52,7 @@ export class MembersService {
 
         await this.cacheService.store(
           `${request['user'].id}`,
-          `${projectId}:member`,
+          redisCacheKey(projectId).member,
           JSON.stringify(member),
         );
         return member;
@@ -60,5 +64,13 @@ export class MembersService {
       );
     }
   }
-  async invite(projectId: string, userId: string) {}
+  async invite(projectId: number, userId: number) {
+    const user = await this.userService.getUser(userId.toString());
+    await this.notificationGatewayGateway.sendJoinNotification(
+      userId,
+      projectId,
+      user.name,
+    );
+    return { message: 'A join notification is sent' };
+  }
 }

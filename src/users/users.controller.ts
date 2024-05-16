@@ -9,4 +9,9 @@ export class UsersController {
   async get(@Req() request: Request) {
     return this.usersService.getUser(request['user'].id);
   }
+
+  @Get('/notifications')
+  async notifications(@Req() request: Request) {
+    return this.usersService.notifications(request['user'].id);
+  }
 }
