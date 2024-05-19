@@ -13,6 +13,6 @@ export function redisCacheKey(
   };
 }
 
-export const socketEvent = {
-  notifications: 'notifications',
-};
+export enum SocketEvent {
+  notification = 'notification',
+}

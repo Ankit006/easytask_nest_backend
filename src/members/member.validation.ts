@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const memberInviteValidation = z.object({
-  userId: z.number(),
-  projectId: z.number(),
+  user_id: z.number(),
+  project_id: z.number(),
 });
 export type MemberInviteDto = z.infer<typeof memberInviteValidation>;

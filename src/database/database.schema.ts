@@ -34,6 +34,9 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+export type IUser = InferSelectModel<typeof users>;
+export type UserDto = InferSelectModel<typeof users>;
+
 export const usersRelations = relations(users, ({ many }) => ({
   members: many(members),
 }));

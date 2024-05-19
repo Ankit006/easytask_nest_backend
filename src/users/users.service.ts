@@ -2,7 +2,6 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
-  NotFoundException,
 } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { CacheService } from 'src/cache/cache.service';
@@ -25,26 +24,6 @@ export class UsersService {
         },
       });
       return user;
-    } catch {
-      throw new InternalServerErrorException(
-        'Something went wrong in the server',
-      );
-    }
-  }
-
-  async searchByEmil(email: string) {
-    try {
-      const res = await this.dbClient.query.users.findFirst({
-        where: eq(users.email, email),
-        columns: {
-          password: false,
-        },
-      });
-      if (res) {
-        return res;
-      } else {
-        throw new NotFoundException('User not found');
-      }
     } catch {
       throw new InternalServerErrorException(
         'Something went wrong in the server',

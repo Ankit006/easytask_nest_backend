@@ -2,16 +2,19 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
 import { Request } from 'express';
 import { CacheService } from 'src/cache/cache.service';
-import { customProvier, redisCacheKey } from 'src/constants';
-import { IMember } from 'src/database/database.schema';
+import { SocketEvent, customProvier, redisCacheKey } from 'src/constants';
+import { IMember, projects, users } from 'src/database/database.schema';
 import { NotificationGatewayGateway } from 'src/notification-gateway/notification-gateway.gateway';
 import { projectIdValidate } from 'src/projects/projects.validation';
 import { DB_CLIENT } from 'src/types';
 import { UsersService } from 'src/users/users.service';
+import { IJoinNotification } from './member.interface';
 
 @Injectable()
 export class MembersService {
@@ -64,13 +67,51 @@ export class MembersService {
       );
     }
   }
-  async invite(projectId: number, userId: number) {
-    const user = await this.userService.getUser(userId.toString());
-    await this.notificationGatewayGateway.sendJoinNotification(
-      userId,
-      projectId,
-      user.name,
-    );
-    return { message: 'A join notification is sent' };
+  async invite(projectId: number, targetUserId: number, request: Request) {
+    const user = await this.userService.getUser(request['user'].id);
+    try {
+      const project = await this.dbClient.query.projects.findFirst({
+        where: eq(projects.id, projectId),
+      });
+      const joinNotification: IJoinNotification = {
+        sender: user,
+        project,
+      };
+      await this.cacheService.listPush(
+        redisCacheKey(undefined, targetUserId).notifications,
+        JSON.stringify(joinNotification),
+      );
+
+      await this.notificationGatewayGateway.sendNotification(
+        targetUserId,
+        SocketEvent.notification,
+        `${user.name} wants you to join in ${project.title} `,
+      );
+      return { message: 'A join notification is sent' };
+    } catch {
+      throw new InternalServerErrorException(
+        'Something went wrong in the server',
+      );
+    }
+  }
+
+  async searchUserByEmail(email: string) {
+    try {
+      const res = await this.dbClient.query.users.findFirst({
+        where: eq(users.email, email),
+        columns: {
+          password: false,
+        },
+      });
+      if (res) {
+        return res;
+      } else {
+        throw new NotFoundException('User not found');
+      }
+    } catch {
+      throw new InternalServerErrorException(
+        'Something went wrong in the server',
+      );
+    }
   }
 }
