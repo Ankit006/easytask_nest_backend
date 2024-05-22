@@ -42,7 +42,7 @@ export class MembersController {
 
   @Get('/user-search')
   @MemberRoles('admin')
-  async searchUser(@Query() query: { email: string }) {
-    return await this.memberService.searchUserByEmail(query.email);
+  async searchUser(@Query() query: { email: string }, @Req() req) {
+    return await this.memberService.searchUserByEmail(query.email, req);
   }
 }

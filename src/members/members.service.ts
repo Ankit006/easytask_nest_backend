@@ -15,6 +15,7 @@ import { projectIdValidate } from 'src/projects/projects.validation';
 import { DB_CLIENT } from 'src/types';
 import { UsersService } from 'src/users/users.service';
 import { IJoinNotification } from './member.interface';
+import { handleExceptionThrow } from 'src/utils';
 
 @Injectable()
 export class MembersService {
@@ -95,7 +96,11 @@ export class MembersService {
     }
   }
 
-  async searchUserByEmail(email: string) {
+  async searchUserByEmail(email: string, request: Request) {
+    if (email === request['user'].email) {
+      throw new UnprocessableEntityException('current user email is provided');
+    }
+
     try {
       const res = await this.dbClient.query.users.findFirst({
         where: eq(users.email, email),
@@ -108,10 +113,8 @@ export class MembersService {
       } else {
         throw new NotFoundException('User not found');
       }
-    } catch {
-      throw new InternalServerErrorException(
-        'Something went wrong in the server',
-      );
+    } catch (err) {
+      handleExceptionThrow(err);
     }
   }
 }
