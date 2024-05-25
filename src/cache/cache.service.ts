@@ -49,7 +49,7 @@ export class CacheService {
     }
   }
 
-  async removeCache(key: string) {
+  async removeListCache(key: string) {
     try {
       await this.redis.del(key);
     } catch {

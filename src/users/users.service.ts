@@ -32,8 +32,16 @@ export class UsersService {
   }
 
   async notifications(userId: string) {
-    return await this.cacheService.getListValues(
+    const res = await this.cacheService.getListValues(
       redisCacheKey(undefined, userId).notifications,
     );
+    return res.length > 0 ? res.map((data) => JSON.parse(data)) : res;
+  }
+
+  async clearNotification(userId: string) {
+    await this.cacheService.removeListCache(
+      redisCacheKey(null, userId).notifications,
+    );
+    return { message: 'Notification is cleared' };
   }
 }

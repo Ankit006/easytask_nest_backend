@@ -16,6 +16,7 @@ import { DB_CLIENT } from 'src/types';
 import { UsersService } from 'src/users/users.service';
 import { IJoinNotification } from './member.interface';
 import { handleExceptionThrow } from 'src/utils';
+import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class MembersService {
@@ -77,6 +78,8 @@ export class MembersService {
       const joinNotification: IJoinNotification = {
         sender: user,
         project,
+        type: 'invite',
+        id: uuid(),
       };
       await this.cacheService.listPush(
         redisCacheKey(undefined, targetUserId).notifications,

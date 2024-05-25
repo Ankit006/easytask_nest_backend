@@ -1,4 +1,4 @@
-import { Controller, Get, Req } from '@nestjs/common';
+import { Controller, Delete, Get, Req } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Request } from 'express';
 
@@ -13,5 +13,9 @@ export class UsersController {
   @Get('/notifications')
   async notifications(@Req() request: Request) {
     return this.usersService.notifications(request['user'].id);
+  }
+  @Delete('/notifications')
+  async clearNotification(@Req() request: Request) {
+    return this.usersService.clearNotification(request['user'].id);
   }
 }
