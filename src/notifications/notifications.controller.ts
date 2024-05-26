@@ -13,12 +13,12 @@ export class NotificationsController {
 
   @Put()
   async removeSingleNotification(
-    @Body() notificationDto: { notifcation: string },
+    @Body() notificationDto: { notification: string },
     @Req() reqeust: Request,
   ) {
     return this.notificationsService.clearSingleNotification(
       reqeust['user'].id,
-      notificationDto.notifcation,
+      notificationDto.notification,
     );
   }
 
