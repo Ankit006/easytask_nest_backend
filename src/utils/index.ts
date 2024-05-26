@@ -15,7 +15,7 @@ export function zodErrorFormatter(errors: ZodIssue[]) {
   return { message: newErrorObj };
 }
 
-export function handleExceptionThrow(error) {
+export function handleExceptionThrow(error: any) {
   if (error.response && error.response.error) {
     if (error.response.error === 'Conflict') {
       throw new ConflictException(error.response.message);

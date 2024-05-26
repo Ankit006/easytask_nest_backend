@@ -10,6 +10,7 @@ import { ProjectsModule } from './projects/projects.module';
 import { SprintsModule } from './sprints/sprints.module';
 import { NotificationGatewayModule } from './notification-gateway/notification-gateway.module';
 import { UsersModule } from './users/users.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { UsersModule } from './users/users.module';
     SprintsModule,
     NotificationGatewayModule,
     UsersModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -56,4 +56,11 @@ export class CacheService {
       throw new Error('Something went wrong in the server');
     }
   }
+  async removeSingleFromList(key: string, stringifyValue: string) {
+    try {
+      await this.redis.lRem(key, 1, stringifyValue);
+    } catch {
+      throw new Error('something went wrong in the server');
+    }
+  }
 }

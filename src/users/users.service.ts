@@ -4,17 +4,14 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { CacheService } from 'src/cache/cache.service';
-import { customProvier, redisCacheKey } from 'src/constants';
-import { users } from 'src/database/database.schema';
+import { customProvier } from 'src/constants';
+import { members, users } from 'src/database/database.schema';
 import { DB_CLIENT } from 'src/types';
+import { handleExceptionThrow } from 'src/utils';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @Inject(customProvier.DB_CLIENT) private dbClient: DB_CLIENT,
-    private cacheService: CacheService,
-  ) {}
+  constructor(@Inject(customProvier.DB_CLIENT) private dbClient: DB_CLIENT) {}
   async getUser(userId: string) {
     try {
       const user = await this.dbClient.query.users.findFirst({
@@ -31,17 +28,16 @@ export class UsersService {
     }
   }
 
-  async notifications(userId: string) {
-    const res = await this.cacheService.getListValues(
-      redisCacheKey(undefined, userId).notifications,
-    );
-    return res.length > 0 ? res.map((data) => JSON.parse(data)) : res;
-  }
-
-  async clearNotification(userId: string) {
-    await this.cacheService.removeListCache(
-      redisCacheKey(null, userId).notifications,
-    );
-    return { message: 'Notification is cleared' };
+  async joinProject(projectId: number, currentUserId: number) {
+    try {
+      await this.dbClient.insert(members).values({
+        user_id: currentUserId,
+        project_id: projectId,
+        role: 'member',
+      });
+      return { message: 'You joined successfully' };
+    } catch (error) {
+      handleExceptionThrow(error);
+    }
   }
 }
