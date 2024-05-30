@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -30,6 +31,16 @@ export class UsersService {
 
   async joinProject(projectId: number, currentUserId: number) {
     try {
+      const res = await this.dbClient.query.members.findFirst({
+        where: (members, { and, eq }) =>
+          and(
+            eq(members.project_id, projectId),
+            eq(members.user_id, currentUserId),
+          ),
+      });
+      if (res) {
+        throw new ConflictException('You already joined in this project');
+      }
       await this.dbClient.insert(members).values({
         user_id: currentUserId,
         project_id: projectId,

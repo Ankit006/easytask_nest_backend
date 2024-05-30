@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -14,9 +15,9 @@ import { NotificationGatewayGateway } from 'src/notification-gateway/notificatio
 import { projectIdValidate } from 'src/projects/projects.validation';
 import { DB_CLIENT } from 'src/types';
 import { UsersService } from 'src/users/users.service';
-import { IJoinNotification } from './member.interface';
 import { handleExceptionThrow } from 'src/utils';
 import { v4 as uuid } from 'uuid';
+import { IJoinNotification } from './member.interface';
 
 @Injectable()
 export class MembersService {
@@ -72,6 +73,20 @@ export class MembersService {
   async invite(projectId: number, targetUserId: number, request: Request) {
     const user = await this.userService.getUser(request['user'].id);
     try {
+      const memberInfo = this.dbClient.query.members.findFirst({
+        where: (members, { and, eq }) =>
+          and(
+            eq(members.project_id, projectId),
+            eq(members.user_id, targetUserId),
+          ),
+      });
+
+      if (memberInfo) {
+        throw new ConflictException(
+          'This user is already member of this project',
+        );
+      }
+
       const project = await this.dbClient.query.projects.findFirst({
         where: eq(projects.id, projectId),
       });
