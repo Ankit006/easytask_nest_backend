@@ -5,14 +5,18 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { customProvier } from 'src/constants';
+import { CacheService } from 'src/cache/cache.service';
+import { customProvier, redisCacheKey } from 'src/constants';
 import { members, users } from 'src/database/database.schema';
 import { DB_CLIENT } from 'src/types';
 import { handleExceptionThrow } from 'src/utils';
 
 @Injectable()
 export class UsersService {
-  constructor(@Inject(customProvier.DB_CLIENT) private dbClient: DB_CLIENT) {}
+  constructor(
+    @Inject(customProvier.DB_CLIENT) private dbClient: DB_CLIENT,
+    private cacheService: CacheService,
+  ) {}
   async getUser(userId: string) {
     try {
       const user = await this.dbClient.query.users.findFirst({
@@ -29,7 +33,11 @@ export class UsersService {
     }
   }
 
-  async joinProject(projectId: number, currentUserId: number) {
+  async joinProject(
+    projectId: number,
+    currentUserId: number,
+    notification: string,
+  ) {
     try {
       const res = await this.dbClient.query.members.findFirst({
         where: (members, { and, eq }) =>
@@ -46,6 +54,10 @@ export class UsersService {
         project_id: projectId,
         role: 'member',
       });
+      await this.cacheService.removeSingleFromList(
+        redisCacheKey(null, currentUserId).notifications,
+        notification,
+      );
       return { message: 'You joined successfully' };
     } catch (error) {
       handleExceptionThrow(error);

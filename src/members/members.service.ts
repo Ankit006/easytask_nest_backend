@@ -73,7 +73,7 @@ export class MembersService {
   async invite(projectId: number, targetUserId: number, request: Request) {
     const user = await this.userService.getUser(request['user'].id);
     try {
-      const memberInfo = this.dbClient.query.members.findFirst({
+      const memberInfo = await this.dbClient.query.members.findFirst({
         where: (members, { and, eq }) =>
           and(
             eq(members.project_id, projectId),
@@ -107,10 +107,8 @@ export class MembersService {
         `${user.name} wants you to join in ${project.title} `,
       );
       return { message: 'A join notification is sent' };
-    } catch {
-      throw new InternalServerErrorException(
-        'Something went wrong in the server',
-      );
+    } catch (err) {
+      handleExceptionThrow(err);
     }
   }
 
