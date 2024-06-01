@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Query,
   Req,
@@ -12,7 +13,12 @@ import {
 import { MembersService } from './members.service';
 import { Request } from 'express';
 import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
-import { MemberInviteDto, memberInviteValidation } from './member.validation';
+import {
+  MemberInviteDto,
+  MemberRoleUpdateDto,
+  memberInviteValidation,
+  memberRoleUpdateValidation,
+} from './member.validation';
 import { MemberRoleGuard } from './members.guard';
 import { MemberRoles } from './members.role';
 
@@ -44,5 +50,18 @@ export class MembersController {
   @MemberRoles('admin')
   async searchUser(@Query() query: { email: string }, @Req() req) {
     return await this.memberService.searchUserByEmail(query.email, req);
+  }
+
+  @Get('/:projectId')
+  @MemberRoles('admin')
+  async members(@Param('projectId', ParseIntPipe) projectId: number) {
+    return await this.memberService.getMembers(projectId);
+  }
+
+  @Post('/role')
+  @MemberRoles('admin')
+  @UsePipes(new ZodValidationPipe(memberRoleUpdateValidation))
+  async changeRole(@Body() memberRoleUpdateDto: MemberRoleUpdateDto) {
+    return await this.memberService.updateRole(memberRoleUpdateDto);
   }
 }

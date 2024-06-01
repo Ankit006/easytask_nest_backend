@@ -1,16 +1,22 @@
 import {
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { Request } from 'express';
 import { CacheService } from 'src/cache/cache.service';
 import { SocketEvent, customProvier, redisCacheKey } from 'src/constants';
-import { IMember, projects, users } from 'src/database/database.schema';
+import {
+  IMember,
+  members,
+  projects,
+  users,
+} from 'src/database/database.schema';
 import { NotificationGatewayGateway } from 'src/notification-gateway/notification-gateway.gateway';
 import { projectIdValidate } from 'src/projects/projects.validation';
 import { DB_CLIENT } from 'src/types';
@@ -18,6 +24,7 @@ import { UsersService } from 'src/users/users.service';
 import { handleExceptionThrow } from 'src/utils';
 import { v4 as uuid } from 'uuid';
 import { IJoinNotification } from './member.interface';
+import { MemberRoleUpdateDto } from './member.validation';
 
 @Injectable()
 export class MembersService {
@@ -129,6 +136,45 @@ export class MembersService {
       } else {
         throw new NotFoundException('User not found');
       }
+    } catch (err) {
+      handleExceptionThrow(err);
+    }
+  }
+
+  async getMembers(projectId: number) {
+    try {
+      const res = await this.dbClient.query.members.findMany({
+        where: eq(members.project_id, projectId),
+        with: {
+          users: {
+            columns: {
+              password: false,
+            },
+          },
+        },
+      });
+      return res;
+    } catch (err) {
+      handleExceptionThrow(err);
+    }
+  }
+
+  async updateRole(memberRoleUpdateDto: MemberRoleUpdateDto) {
+    const { project_id, member_id, role } = memberRoleUpdateDto;
+    if (role === 'admin') {
+      throw new ForbiddenException('You cannot make a user an admin');
+    }
+    try {
+      await this.dbClient
+        .update(members)
+        .set({ role: role === 'member' ? 'member' : 'moderator' })
+        .where(
+          and(
+            eq(members.user_id, member_id),
+            eq(members.project_id, project_id),
+          ),
+        );
+      return { message: 'Member role updated' };
     } catch (err) {
       handleExceptionThrow(err);
     }
