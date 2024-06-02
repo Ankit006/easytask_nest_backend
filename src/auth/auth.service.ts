@@ -43,6 +43,7 @@ export class AuthService {
 
       return { message: 'You are registered successfully', accessToken };
     } catch (error) {
+      console.log(error);
       if (error.response && error.response.error) {
         if (error.response.error === 'Conflict') {
           throw new ConflictException(error.response.message);
