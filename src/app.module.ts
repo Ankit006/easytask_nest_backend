@@ -11,6 +11,7 @@ import { SprintsModule } from './sprints/sprints.module';
 import { NotificationGatewayModule } from './notification-gateway/notification-gateway.module';
 import { UsersModule } from './users/users.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { GroupsModule } from './groups/groups.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     NotificationGatewayModule,
     UsersModule,
     NotificationsModule,
+    GroupsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

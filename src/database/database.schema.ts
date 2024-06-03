@@ -55,6 +55,7 @@ export type ProjectDto = InferInsertModel<typeof projects>;
 export const projectsRelations = relations(projects, ({ many }) => ({
   members: many(members),
   sprints: many(sprints),
+  groups: many(groups),
 }));
 
 /////////////////// member table
@@ -93,11 +94,22 @@ export const membersRelations = relations(members, ({ one, many }) => ({
 export const groups = pgTable('groups', {
   id: serial('id').primaryKey(),
   name: text('name'),
+  project_id: integer('project_id')
+    .references(() => projects.id, { onDelete: 'cascade' })
+    .notNull(),
+  color: text('color').default(null),
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-export const groupsRelations = relations(groups, ({ many }) => ({
+export type IGroup = InferSelectModel<typeof groups>;
+export type GroupDto = InferInsertModel<typeof groups>;
+
+export const groupsRelations = relations(groups, ({ many, one }) => ({
   membersToGroups: many(membersToGroups),
+  projects: one(projects, {
+    fields: [groups.project_id],
+    references: [projects.id],
+  }),
 }));
 
 ///////////// memberToGroup
@@ -107,13 +119,13 @@ export const membersToGroups = pgTable(
   {
     memberId: integer('member_id')
       .notNull()
-      .references(() => members.id),
-    groupdId: integer('group_id')
+      .references(() => members.id, { onDelete: 'cascade' }),
+    groupId: integer('group_id')
       .notNull()
-      .references(() => groups.id),
+      .references(() => groups.id, { onDelete: 'cascade' }),
   },
   (t) => ({
-    pk: primaryKey({ columns: [t.memberId, t.groupdId] }),
+    pk: primaryKey({ columns: [t.memberId, t.groupId] }),
   }),
 );
 
