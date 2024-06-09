@@ -3,7 +3,6 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -11,12 +10,7 @@ import { and, eq } from 'drizzle-orm';
 import { Request } from 'express';
 import { CacheService } from 'src/cache/cache.service';
 import { SocketEvent, customProvier, redisCacheKey } from 'src/constants';
-import {
-  IMember,
-  members,
-  projects,
-  users,
-} from 'src/database/database.schema';
+import { members, projects, users } from 'src/database/database.schema';
 import { NotificationGatewayGateway } from 'src/notification-gateway/notification-gateway.gateway';
 import { projectIdValidate } from 'src/projects/projects.validation';
 import { DB_CLIENT } from 'src/types';
@@ -41,40 +35,26 @@ export class MembersService {
       throw new UnprocessableEntityException('Not a valid project id');
     }
     try {
-      const cachedMember = await this.cacheService.get(
-        `${request['user'].id}`,
-        redisCacheKey(projectId).member,
-      );
-      if (cachedMember) {
-        return JSON.parse(cachedMember) as IMember;
-      } else {
-        const member = await this.dbClient.query.members.findFirst({
-          where: (members, { and, eq }) =>
-            and(
-              eq(members.user_id, request['user'].id),
-              eq(members.project_id, parseInt(projectId)),
-            ),
-          with: {
-            users: {
-              columns: {
-                password: false,
-              },
+      const member = await this.dbClient.query.members.findFirst({
+        where: (members, { and, eq }) =>
+          and(
+            eq(members.user_id, request['user'].id),
+            eq(members.project_id, parseInt(projectId)),
+          ),
+        with: {
+          users: {
+            columns: {
+              password: false,
             },
           },
-        });
-
-        await this.cacheService.store(
-          `${request['user'].id}`,
-          redisCacheKey(projectId).member,
-          JSON.stringify(member),
-        );
-        return member;
+        },
+      });
+      if (!member) {
+        throw new NotFoundException('User not found');
       }
+      return member;
     } catch (err) {
-      throw new InternalServerErrorException(
-        'Something went wrong in the server',
-        { cause: err },
-      );
+      handleExceptionThrow(err);
     }
   }
   async invite(projectId: number, targetUserId: number, request: Request) {

@@ -1,7 +1,6 @@
 import {
   Inject,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -15,6 +14,7 @@ import {
   projects,
 } from 'src/database/database.schema';
 import { DB_CLIENT } from 'src/types';
+import { handleExceptionThrow } from 'src/utils';
 import { projectIdValidate } from './projects.validation';
 
 @Injectable()
@@ -40,10 +40,7 @@ export class ProjectsService {
       });
       return res[0];
     } catch (err) {
-      throw new InternalServerErrorException(
-        'Something went wrong in the server',
-        { cause: err },
-      );
+      handleExceptionThrow(err);
     }
   }
 
@@ -60,10 +57,7 @@ export class ProjectsService {
         .returning();
       return res[0];
     } catch (err) {
-      throw new InternalServerErrorException(
-        'Something went wrong in the server',
-        { cause: err },
-      );
+      handleExceptionThrow(err);
     }
   }
 
@@ -82,10 +76,7 @@ export class ProjectsService {
       }
       return projects;
     } catch (err) {
-      throw new InternalServerErrorException(
-        'Something went wrong in the server',
-        { cause: err },
-      );
+      handleExceptionThrow(err);
     }
   }
 
@@ -104,21 +95,7 @@ export class ProjectsService {
       }
       return project;
     } catch (err) {
-      if (err.response && err.response.error) {
-        if (err.response.error === 'Not Found') {
-          throw new NotFoundException(err.response.message);
-        } else {
-          throw new InternalServerErrorException(
-            'Something went wrong in the server',
-            { cause: err },
-          );
-        }
-      }
-
-      throw new InternalServerErrorException(
-        'Something went wrong in the server',
-        { cause: err },
-      );
+      handleExceptionThrow(err);
     }
   }
 
@@ -130,10 +107,7 @@ export class ProjectsService {
         .returning();
       return res[0];
     } catch (err) {
-      throw new InternalServerErrorException(
-        'Something went wrong in the server',
-        { cause: err },
-      );
+      handleExceptionThrow(err);
     }
   }
 }
