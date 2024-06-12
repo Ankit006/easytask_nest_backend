@@ -131,6 +131,11 @@ export class MembersService {
               password: false,
             },
           },
+          membersToGroups: {
+            with: {
+              group: true,
+            },
+          },
         },
       });
       return res;

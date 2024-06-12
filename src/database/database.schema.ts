@@ -56,6 +56,7 @@ export const projectsRelations = relations(projects, ({ many }) => ({
   members: many(members),
   sprints: many(sprints),
   groups: many(groups),
+  membersToGroups: many(membersToGroups),
 }));
 
 /////////////////// member table
@@ -123,9 +124,30 @@ export const membersToGroups = pgTable(
     groupId: integer('group_id')
       .notNull()
       .references(() => groups.id, { onDelete: 'cascade' }),
+    projectId: integer('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
   },
   (t) => ({
-    pk: primaryKey({ columns: [t.memberId, t.groupId] }),
+    pk: primaryKey({ columns: [t.memberId, t.groupId, t.projectId] }),
+  }),
+);
+
+export const memberToGroupsRelations = relations(
+  membersToGroups,
+  ({ one }) => ({
+    member: one(members, {
+      fields: [membersToGroups.memberId],
+      references: [members.id],
+    }),
+    group: one(groups, {
+      fields: [membersToGroups.groupId],
+      references: [groups.id],
+    }),
+    project: one(projects, {
+      fields: [membersToGroups.projectId],
+      references: [projects.id],
+    }),
   }),
 );
 
