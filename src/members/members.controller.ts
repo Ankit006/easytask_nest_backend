@@ -53,7 +53,7 @@ export class MembersController {
   }
 
   @Get('/:projectId')
-  @MemberRoles('admin')
+  @MemberRoles('admin', 'moderator')
   async members(@Param('projectId', ParseIntPipe) projectId: number) {
     return await this.memberService.getMembers(projectId);
   }
