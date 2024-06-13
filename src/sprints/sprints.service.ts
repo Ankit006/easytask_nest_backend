@@ -3,9 +3,11 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
+import { asc, eq } from 'drizzle-orm';
 import { customProvier } from 'src/constants';
 import { SprintDto, sprints } from 'src/database/database.schema';
 import { DB_CLIENT } from 'src/types';
+import { handleExceptionThrow } from 'src/utils';
 
 @Injectable()
 export class SprintsService {
@@ -16,7 +18,7 @@ export class SprintsService {
     endDate,
     description,
     projectId,
-  }: SprintDto & { projectId: string }) {
+  }: SprintDto & { projectId: number }) {
     try {
       const res = await this.dbClient
         .insert(sprints)
@@ -27,6 +29,18 @@ export class SprintsService {
       throw new InternalServerErrorException(
         'Something went wrong in the server',
       );
+    }
+  }
+
+  async getAll(projectId: number) {
+    try {
+      const res = await this.dbClient.query.sprints.findMany({
+        where: eq(sprints.projectId, projectId),
+        orderBy: asc(sprints.createdAt),
+      });
+      return res;
+    } catch (err) {
+      handleExceptionThrow(err);
     }
   }
 }
