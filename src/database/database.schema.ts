@@ -55,6 +55,8 @@ export type ProjectDto = InferInsertModel<typeof projects>;
 export const projectsRelations = relations(projects, ({ many }) => ({
   members: many(members),
   sprints: many(sprints),
+  groups: many(groups),
+  membersToGroups: many(membersToGroups),
 }));
 
 /////////////////// member table
@@ -93,11 +95,22 @@ export const membersRelations = relations(members, ({ one, many }) => ({
 export const groups = pgTable('groups', {
   id: serial('id').primaryKey(),
   name: text('name'),
+  project_id: integer('project_id')
+    .references(() => projects.id, { onDelete: 'cascade' })
+    .notNull(),
+  color: text('color').default(null),
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-export const groupsRelations = relations(groups, ({ many }) => ({
+export type IGroup = InferSelectModel<typeof groups>;
+export type GroupDto = InferInsertModel<typeof groups>;
+
+export const groupsRelations = relations(groups, ({ many, one }) => ({
   membersToGroups: many(membersToGroups),
+  projects: one(projects, {
+    fields: [groups.project_id],
+    references: [projects.id],
+  }),
 }));
 
 ///////////// memberToGroup
@@ -107,13 +120,34 @@ export const membersToGroups = pgTable(
   {
     memberId: integer('member_id')
       .notNull()
-      .references(() => members.id),
-    groupdId: integer('group_id')
+      .references(() => members.id, { onDelete: 'cascade' }),
+    groupId: integer('group_id')
       .notNull()
-      .references(() => groups.id),
+      .references(() => groups.id, { onDelete: 'cascade' }),
+    projectId: integer('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
   },
   (t) => ({
-    pk: primaryKey({ columns: [t.memberId, t.groupdId] }),
+    pk: primaryKey({ columns: [t.memberId, t.groupId, t.projectId] }),
+  }),
+);
+
+export const memberToGroupsRelations = relations(
+  membersToGroups,
+  ({ one }) => ({
+    member: one(members, {
+      fields: [membersToGroups.memberId],
+      references: [members.id],
+    }),
+    group: one(groups, {
+      fields: [membersToGroups.groupId],
+      references: [groups.id],
+    }),
+    project: one(projects, {
+      fields: [membersToGroups.projectId],
+      references: [projects.id],
+    }),
   }),
 );
 

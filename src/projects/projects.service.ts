@@ -1,7 +1,6 @@
 import {
   Inject,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -15,6 +14,7 @@ import {
   projects,
 } from 'src/database/database.schema';
 import { DB_CLIENT } from 'src/types';
+import { handleExceptionThrow } from 'src/utils';
 import { projectIdValidate } from './projects.validation';
 
 @Injectable()
@@ -26,23 +26,21 @@ export class ProjectsService {
     request,
   }: ProjectDto & { request: Request }): Promise<IProject> {
     try {
-      const res = await this.dbClient
-        .insert(projects)
-        .values({ title, description })
-        .returning();
-      await this.dbClient.insert(members).values({
-        user_id: request['user'].id,
-        project_id: res[0].id,
-        role: 'admin',
+      const res = await this.dbClient.transaction(async (tx) => {
+        const res = await tx
+          .insert(projects)
+          .values({ title, description })
+          .returning();
+        await tx.insert(members).values({
+          user_id: request['user'].id,
+          project_id: res[0].id,
+          role: 'admin',
+        });
+        return res;
       });
-
       return res[0];
     } catch (err) {
-      console.log(err);
-      throw new InternalServerErrorException(
-        'Something went wrong in the server',
-        { cause: err },
-      );
+      handleExceptionThrow(err);
     }
   }
 
@@ -59,10 +57,7 @@ export class ProjectsService {
         .returning();
       return res[0];
     } catch (err) {
-      throw new InternalServerErrorException(
-        'Something went wrong in the server',
-        { cause: err },
-      );
+      handleExceptionThrow(err);
     }
   }
 
@@ -81,10 +76,7 @@ export class ProjectsService {
       }
       return projects;
     } catch (err) {
-      throw new InternalServerErrorException(
-        'Something went wrong in the server',
-        { cause: err },
-      );
+      handleExceptionThrow(err);
     }
   }
 
@@ -103,21 +95,7 @@ export class ProjectsService {
       }
       return project;
     } catch (err) {
-      if (err.response && err.response.error) {
-        if (err.response.error === 'Not Found') {
-          throw new NotFoundException(err.response.message);
-        } else {
-          throw new InternalServerErrorException(
-            'Something went wrong in the server',
-            { cause: err },
-          );
-        }
-      }
-
-      throw new InternalServerErrorException(
-        'Something went wrong in the server',
-        { cause: err },
-      );
+      handleExceptionThrow(err);
     }
   }
 
@@ -129,10 +107,7 @@ export class ProjectsService {
         .returning();
       return res[0];
     } catch (err) {
-      throw new InternalServerErrorException(
-        'Something went wrong in the server',
-        { cause: err },
-      );
+      handleExceptionThrow(err);
     }
   }
 }

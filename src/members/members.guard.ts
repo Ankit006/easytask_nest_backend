@@ -33,14 +33,15 @@ export class MemberRoleGuard implements CanActivate {
     // user can pass project_id on query params for GET or in the body object for POST request
     const bodyProjectId = request.body['project_id'];
     const queryProjectId = request.query['project_id'];
+    const { projectId: paramsProjectId } = request.params;
 
-    if (!bodyProjectId && !queryProjectId) {
+    if (!bodyProjectId && !queryProjectId && !paramsProjectId) {
       throw new UnauthorizedException(
         'You are not allowed to perform this action',
       );
     }
 
-    const projectId = bodyProjectId ? bodyProjectId : queryProjectId;
+    const projectId = bodyProjectId || queryProjectId || paramsProjectId;
 
     try {
       const res = await this.dbClient.query.members.findFirst({
