@@ -157,7 +157,8 @@ export const sprints = pgTable('sprints', {
   id: serial('id').primaryKey(),
   startDate: date('start_date'),
   endDate: date('end_date'),
-  description: text('description').notNull(),
+  title: text('title').notNull(),
+  description: text('description'),
   isCompleted: boolean('is_completed').notNull().default(false),
   projectId: integer('project_id').references(() => projects.id, {
     onDelete: 'cascade',
@@ -180,8 +181,9 @@ export const sprintsRelations = relations(sprints, ({ one, many }) => ({
 
 export const userStories = pgTable('user_stories', {
   id: serial('id').primaryKey(),
-  sprintId: integer('sprint_id')
-    .references(() => sprints.id)
+  sprintId: integer('sprint_id').references(() => sprints.id),
+  projectId: integer('project_id')
+    .references(() => projects.id)
     .notNull(),
   title: text('title'),
   description: text('description'),
@@ -191,10 +193,17 @@ export const userStories = pgTable('user_stories', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+export type IUserStory = InferSelectModel<typeof userStories>;
+export type UserStoryDto = InferInsertModel<typeof userStories>;
+
 export const userStoriesRelations = relations(userStories, ({ one, many }) => ({
   spring: one(sprints, {
     fields: [userStories.sprintId],
     references: [sprints.id],
+  }),
+  project: one(projects, {
+    fields: [userStories.projectId],
+    references: [projects.id],
   }),
   userStoriesToMembers: many(userStoriesToMembers),
   tasks: many(tasks),

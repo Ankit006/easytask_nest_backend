@@ -12,6 +12,7 @@ import { NotificationGatewayModule } from './notification-gateway/notification-g
 import { UsersModule } from './users/users.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { GroupsModule } from './groups/groups.module';
+import { UserStoriesModule } from './user-stories/user-stories.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { GroupsModule } from './groups/groups.module';
     UsersModule,
     NotificationsModule,
     GroupsModule,
+    UserStoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

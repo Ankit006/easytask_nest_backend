@@ -2,7 +2,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
-  InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { CacheService } from 'src/cache/cache.service';
@@ -25,11 +25,13 @@ export class UsersService {
           password: false,
         },
       });
+
+      if (!user) {
+        throw new UnauthorizedException('Unauthorized access');
+      }
       return user;
-    } catch {
-      throw new InternalServerErrorException(
-        'Something went wrong in the server',
-      );
+    } catch (err) {
+      handleExceptionThrow(err);
     }
   }
 

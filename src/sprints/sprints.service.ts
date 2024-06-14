@@ -18,11 +18,12 @@ export class SprintsService {
     endDate,
     description,
     projectId,
+    title,
   }: SprintDto & { projectId: number }) {
     try {
       const res = await this.dbClient
         .insert(sprints)
-        .values({ startDate, endDate, description, projectId })
+        .values({ startDate, endDate, description, projectId, title })
         .returning();
       return res[0];
     } catch {
