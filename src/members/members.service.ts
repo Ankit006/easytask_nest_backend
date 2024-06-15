@@ -8,9 +8,6 @@ import {
 } from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
 import { Request } from 'express';
-import { CacheService } from 'src/cache/cache.service';
-import { SocketEvent, customProvier, redisCacheKey } from 'src/constants';
-import { members, projects, users } from 'src/database/database.schema';
 import { NotificationGatewayGateway } from 'src/notification-gateway/notification-gateway.gateway';
 import { projectIdValidate } from 'src/projects/projects.validation';
 import { DB_CLIENT } from 'src/types';
@@ -19,6 +16,9 @@ import { handleExceptionThrow } from 'src/utils';
 import { v4 as uuid } from 'uuid';
 import { IJoinNotification } from './member.interface';
 import { MemberRoleUpdateDto } from './member.validation';
+import { CacheService } from 'src/cache/cache.service';
+import { customProvier, redisCacheKey, SocketEvent } from 'src/constants';
+import { members, projects, users } from 'src/database/database.schema';
 
 @Injectable()
 export class MembersService {
