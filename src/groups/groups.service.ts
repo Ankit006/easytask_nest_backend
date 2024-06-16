@@ -27,7 +27,7 @@ export class GroupsService {
   async getAll(projectId: number) {
     try {
       const res = await this.dbClient.query.groups.findMany({
-        where: eq(groups.project_id, projectId),
+        where: eq(groups.projectId, projectId),
       });
       return res;
     } catch (err) {

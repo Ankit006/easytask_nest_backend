@@ -16,7 +16,7 @@ export class UsersController {
   @UsePipes(new ZodValidationPipe(joinProjectValidation))
   async join(@Body() joinProjectDto: JoinProjectDto, @Req() request: Request) {
     return await this.usersService.joinProject(
-      joinProjectDto.project_id,
+      joinProjectDto.projectId,
       request['user'].id,
       joinProjectDto.notification,
     );
