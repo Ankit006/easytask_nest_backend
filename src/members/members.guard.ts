@@ -30,9 +30,9 @@ export class MemberRoleGuard implements CanActivate {
       return true;
     }
 
-    // user can pass project_id on query params for GET or in the body object for POST request
-    const bodyProjectId = request.body['project_id'];
-    const queryProjectId = request.query['project_id'];
+    // user can pass projectId on query params for GET or in the body object for POST request
+    const bodyProjectId = request.body['projectId'];
+    const queryProjectId = request.query['projectId'];
     const { projectId: paramsProjectId } = request.params;
 
     if (!bodyProjectId && !queryProjectId && !paramsProjectId) {
@@ -47,8 +47,8 @@ export class MemberRoleGuard implements CanActivate {
       const res = await this.dbClient.query.members.findFirst({
         where: (members, { and, eq }) =>
           and(
-            eq(members.project_id, projectId),
-            eq(members.user_id, request['user'].id),
+            eq(members.projectId, projectId),
+            eq(members.userId, request['user'].id),
           ),
       });
       if (!res) {

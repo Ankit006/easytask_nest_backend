@@ -40,8 +40,8 @@ export class MembersController {
     @Req() request: Request,
   ) {
     return await this.memberService.invite(
-      memberInviteDto.project_id,
-      memberInviteDto.user_id,
+      memberInviteDto.projectId,
+      memberInviteDto.userId,
       request,
     );
   }

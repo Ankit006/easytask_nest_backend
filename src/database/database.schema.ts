@@ -63,10 +63,10 @@ export const projectsRelations = relations(projects, ({ many }) => ({
 
 export const members = pgTable('members', {
   id: serial('id').primaryKey(),
-  user_id: integer('user_id')
+  userId: integer('user_id')
     .references(() => users.id, { onDelete: 'cascade' })
     .notNull(),
-  project_id: integer('project_id')
+  projectId: integer('project_id')
     .references(() => projects.id, { onDelete: 'cascade' })
     .notNull(),
   role: roleEnum('role'),
@@ -78,11 +78,11 @@ export type MemberDto = InferInsertModel<typeof members>;
 
 export const membersRelations = relations(members, ({ one, many }) => ({
   users: one(users, {
-    fields: [members.user_id],
+    fields: [members.userId],
     references: [users.id],
   }),
   projects: one(projects, {
-    fields: [members.project_id],
+    fields: [members.projectId],
     references: [projects.id],
   }),
   membersToGroups: many(membersToGroups),
@@ -95,7 +95,7 @@ export const membersRelations = relations(members, ({ one, many }) => ({
 export const groups = pgTable('groups', {
   id: serial('id').primaryKey(),
   name: text('name'),
-  project_id: integer('project_id')
+  projectId: integer('project_id')
     .references(() => projects.id, { onDelete: 'cascade' })
     .notNull(),
   color: text('color').default(null),
@@ -108,7 +108,7 @@ export type GroupDto = InferInsertModel<typeof groups>;
 export const groupsRelations = relations(groups, ({ many, one }) => ({
   membersToGroups: many(membersToGroups),
   projects: one(projects, {
-    fields: [groups.project_id],
+    fields: [groups.projectId],
     references: [projects.id],
   }),
 }));

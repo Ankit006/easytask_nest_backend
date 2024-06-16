@@ -32,8 +32,8 @@ export class ProjectsService {
           .values({ title, description })
           .returning();
         await tx.insert(members).values({
-          user_id: request['user'].id,
-          project_id: res[0].id,
+          userId: request['user'].id,
+          projectId: res[0].id,
           role: 'admin',
         });
         return res;
@@ -65,7 +65,7 @@ export class ProjectsService {
     try {
       const projects: IProject[] = [];
       const memberWithprojects = await this.dbClient.query.members.findMany({
-        where: eq(members.user_id, request['user'].id),
+        where: eq(members.userId, request['user'].id),
         with: {
           projects: true,
         },
