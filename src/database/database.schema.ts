@@ -14,8 +14,9 @@ import {
 import { InferSelectModel, InferInsertModel } from 'drizzle-orm';
 /////////enums
 
-export const priorityEnum = pgEnum('prority', ['low', 'medium', 'high']);
+export const priorityEnum = pgEnum('priority', ['low', 'medium', 'high']);
 export const statusEnum = pgEnum('status', [
+  'new',
   'active',
   'completed',
   'on hold',
@@ -188,7 +189,7 @@ export const userStories = pgTable('user_stories', {
   title: text('title'),
   description: text('description'),
   priority: priorityEnum('priority').notNull().default('low'),
-  status: statusEnum('status').notNull().default('pending'),
+  status: statusEnum('status').notNull().default('new'),
   estimateDate: date('estimate_date'),
   createdAt: timestamp('created_at').defaultNow(),
 });
@@ -246,7 +247,7 @@ export const usertoriesToMembersRelations = relations(
 export const tasks = pgTable('tasks', {
   id: serial('id').primaryKey(),
   task: text('task').notNull(),
-  status: statusEnum('status').notNull().default('pending'),
+  status: statusEnum('status').notNull().default('new'),
   priority: priorityEnum('priority').notNull().default('low'),
   userStoryId: integer('user_story_id')
     .notNull()

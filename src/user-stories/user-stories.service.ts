@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { customProvier } from 'src/constants';
 import { UserStoryDto, userStories } from 'src/database/database.schema';
 import { DB_CLIENT } from 'src/types';
@@ -37,7 +37,7 @@ export class UserStoriesService {
       const res = await this.dbClient.query.userStories.findMany({
         where: and(
           eq(userStories.projectId, projectId),
-          eq(userStories.sprintId, null),
+          isNull(userStories.sprintId),
         ),
       });
       return res;
