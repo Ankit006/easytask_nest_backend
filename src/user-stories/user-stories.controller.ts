@@ -6,13 +6,17 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
 import { MemberRoleGuard } from 'src/members/members.guard';
 import { UserStoriesService } from './user-stories.service';
 import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
-import { userStoryDtoValidation } from './user-stories.validation';
+import {
+  userStoryDtoValidation,
+  userStoryUpdateValidation,
+} from './user-stories.validation';
 import { MemberRoles } from 'src/members/members.role';
 import { UserStoryDto } from 'src/database/database.schema';
 
@@ -26,6 +30,13 @@ export class UserStoriesController {
   @MemberRoles('admin', 'moderator')
   async create(@Body() userStoryDto: UserStoryDto) {
     return this.userStoriesService.create(userStoryDto);
+  }
+
+  @Put()
+  @UsePipes(new ZodValidationPipe(userStoryUpdateValidation))
+  @MemberRoles('admin', 'moderator')
+  async update(@Body() userStoryDto: UserStoryDto) {
+    return this.userStoriesService.update(userStoryDto);
   }
 
   @Get('/backlogs/:projectId')

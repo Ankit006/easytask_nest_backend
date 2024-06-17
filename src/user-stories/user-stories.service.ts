@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, asc, eq, isNull } from 'drizzle-orm';
 import { customProvier } from 'src/constants';
 import { UserStoryDto, userStories } from 'src/database/database.schema';
 import { DB_CLIENT } from 'src/types';
@@ -13,6 +13,18 @@ export class UserStoriesService {
     try {
       await this.dbClient.insert(userStories).values(userStoryDto);
       return { message: 'User story is added' };
+    } catch (err) {
+      handleExceptionThrow(err);
+    }
+  }
+
+  async update(userStoryDto: UserStoryDto) {
+    try {
+      await this.dbClient
+        .update(userStories)
+        .set(userStoryDto)
+        .where(eq(userStories.id, userStoryDto.id));
+      return { message: 'Update story updated' };
     } catch (err) {
       handleExceptionThrow(err);
     }
@@ -39,6 +51,7 @@ export class UserStoriesService {
           eq(userStories.projectId, projectId),
           isNull(userStories.sprintId),
         ),
+        orderBy: asc(userStories.createdAt),
       });
       return res;
     } catch (err) {
