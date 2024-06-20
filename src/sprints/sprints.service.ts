@@ -19,13 +19,12 @@ export class SprintsService {
     description,
     projectId,
     title,
-  }: SprintDto & { projectId: number }) {
+  }: SprintDto) {
     try {
-      const res = await this.dbClient
+      await this.dbClient
         .insert(sprints)
-        .values({ startDate, endDate, description, projectId, title })
-        .returning();
-      return res[0];
+        .values({ startDate, endDate, description, projectId, title });
+      return { message: 'Sprint is created' };
     } catch {
       throw new InternalServerErrorException(
         'Something went wrong in the server',

@@ -1,17 +1,20 @@
-import { relations, sql } from 'drizzle-orm';
 import {
-  pgTable,
-  serial,
-  varchar,
-  text,
-  integer,
-  timestamp,
-  pgEnum,
-  primaryKey,
+  InferInsertModel,
+  InferSelectModel,
+  relations,
+  sql,
+} from 'drizzle-orm';
+import {
   date,
-  boolean,
+  integer,
+  pgEnum,
+  pgTable,
+  primaryKey,
+  serial,
+  text,
+  timestamp,
+  varchar,
 } from 'drizzle-orm/pg-core';
-import { InferSelectModel, InferInsertModel } from 'drizzle-orm';
 /////////enums
 
 export const priorityEnum = pgEnum('priority', ['low', 'medium', 'high']);
@@ -160,7 +163,6 @@ export const sprints = pgTable('sprints', {
   endDate: date('end_date'),
   title: text('title').notNull(),
   description: text('description'),
-  isCompleted: boolean('is_completed').notNull().default(false),
   projectId: integer('project_id').references(() => projects.id, {
     onDelete: 'cascade',
   }),
@@ -184,7 +186,7 @@ export const userStories = pgTable('user_stories', {
   id: serial('id').primaryKey(),
   sprintId: integer('sprint_id').references(() => sprints.id),
   projectId: integer('project_id')
-    .references(() => projects.id)
+    .references(() => projects.id, { onDelete: 'cascade' })
     .notNull(),
   title: text('title'),
   description: text('description'),

@@ -23,7 +23,7 @@ export class SprintsController {
   @Post()
   @MemberRoles('admin', 'moderator')
   @UsePipes(new ZodValidationPipe(sprintFormValidation))
-  async create(@Body() sprintDto: SprintDto & { projectId: number }) {
+  async create(@Body() sprintDto: SprintDto) {
     return this.sprintsService.create(sprintDto);
   }
 
