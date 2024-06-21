@@ -31,4 +31,9 @@ export class SprintsController {
   async getAll(@Param('projectId', ParseIntPipe) projectId: number) {
     return this.sprintsService.getAll(projectId);
   }
+
+  @Get('/sprint/:sprintId')
+  async get(@Param('sprintId', ParseIntPipe) sprintId: number) {
+    return this.sprintsService.get(sprintId);
+  }
 }

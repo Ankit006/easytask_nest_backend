@@ -2,6 +2,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { asc, eq } from 'drizzle-orm';
 import { customProvier } from 'src/constants';
@@ -38,6 +39,20 @@ export class SprintsService {
         where: eq(sprints.projectId, projectId),
         orderBy: asc(sprints.createdAt),
       });
+      return res;
+    } catch (err) {
+      handleExceptionThrow(err);
+    }
+  }
+
+  async get(sprintId: number) {
+    try {
+      const res = await this.dbClient.query.sprints.findFirst({
+        where: eq(sprints.id, sprintId),
+      });
+      if (!res) {
+        throw new NotFoundException('Sprint not found');
+      }
       return res;
     } catch (err) {
       handleExceptionThrow(err);
