@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -35,5 +36,10 @@ export class SprintsController {
   @Get('/sprint/:sprintId')
   async get(@Param('sprintId', ParseIntPipe) sprintId: number) {
     return this.sprintsService.get(sprintId);
+  }
+
+  @Delete('/sprint/:sprintId')
+  async remove(@Param('sprintId', ParseIntPipe) sprintId: number) {
+    return this.sprintsService.remove(sprintId);
   }
 }

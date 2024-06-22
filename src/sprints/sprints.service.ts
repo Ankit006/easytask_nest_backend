@@ -58,4 +58,13 @@ export class SprintsService {
       handleExceptionThrow(err);
     }
   }
+
+  async remove(sprintId: number) {
+    try {
+      await this.dbClient.delete(sprints).where(eq(sprints.id, sprintId));
+      return { message: 'Sprint is removed' };
+    } catch (err) {
+      handleExceptionThrow(err);
+    }
+  }
 }
