@@ -6,9 +6,10 @@ import {
 } from '@nestjs/common';
 import { asc, eq } from 'drizzle-orm';
 import { customProvier } from 'src/constants';
-import { SprintDto, sprints } from 'src/database/database.schema';
+import { SprintDto, sprints, userStories } from 'src/database/database.schema';
 import { DB_CLIENT } from 'src/types';
 import { handleExceptionThrow } from 'src/utils';
+import { AssingBacklogDto } from './sprints.validation';
 
 @Injectable()
 export class SprintsService {
@@ -63,6 +64,30 @@ export class SprintsService {
     try {
       await this.dbClient.delete(sprints).where(eq(sprints.id, sprintId));
       return { message: 'Sprint is removed' };
+    } catch (err) {
+      handleExceptionThrow(err);
+    }
+  }
+
+  async assingBackLog({ backlogId, sprintId }: AssingBacklogDto) {
+    try {
+      await this.dbClient
+        .update(userStories)
+        .set({ sprintId })
+        .where(eq(userStories.id, backlogId));
+      return { message: 'Backlog is assinged' };
+    } catch (err) {
+      handleExceptionThrow(err);
+    }
+  }
+
+  async removeUserStory(backlogId: number) {
+    try {
+      await this.dbClient
+        .update(userStories)
+        .set({ sprintId: null })
+        .where(eq(userStories.id, backlogId));
+      return { message: 'user story is removed from sprint' };
     } catch (err) {
       handleExceptionThrow(err);
     }

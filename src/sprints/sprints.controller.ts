@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
@@ -13,7 +14,11 @@ import { MemberRoleGuard } from 'src/members/members.guard';
 import { MemberRoles } from 'src/members/members.role';
 import { SprintsService } from './sprints.service';
 import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
-import { sprintFormValidation } from './sprints.validation';
+import {
+  AssingBacklogDto,
+  assingBacklogValidation,
+  sprintFormValidation,
+} from './sprints.validation';
 import { SprintDto } from 'src/database/database.schema';
 
 @Controller('sprints')
@@ -41,5 +46,16 @@ export class SprintsController {
   @Delete('/sprint/:sprintId')
   async remove(@Param('sprintId', ParseIntPipe) sprintId: number) {
     return this.sprintsService.remove(sprintId);
+  }
+
+  @Put('/assign')
+  @UsePipes(new ZodValidationPipe(assingBacklogValidation))
+  async assignBacklog(@Body() assingbacklogDto: AssingBacklogDto) {
+    return this.sprintsService.assingBackLog(assingbacklogDto);
+  }
+
+  @Delete('/assign/:backlogId')
+  async removeUserStory(@Param('backlogId', ParseIntPipe) backlogId: number) {
+    return this.sprintsService.removeUserStory(backlogId);
   }
 }

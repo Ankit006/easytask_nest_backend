@@ -7,3 +7,10 @@ export const sprintFormValidation = z.object({
   projectId: z.number(),
   title: z.string(),
 });
+
+export const assingBacklogValidation = z.object({
+  sprintId: z.number(),
+  backlogId: z.number(),
+});
+
+export type AssingBacklogDto = z.infer<typeof assingBacklogValidation>;
