@@ -34,6 +34,18 @@ export class SprintsService {
     }
   }
 
+  async update(sprintDto: SprintDto) {
+    try {
+      await this.dbClient
+        .update(sprints)
+        .set(sprintDto)
+        .where(eq(sprints.id, sprintDto.id));
+      return { message: 'Sprint is updated' };
+    } catch (err) {
+      handleExceptionThrow(err);
+    }
+  }
+
   async getAll(projectId: number) {
     try {
       const res = await this.dbClient.query.sprints.findMany({

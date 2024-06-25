@@ -184,7 +184,11 @@ export const sprintsRelations = relations(sprints, ({ one, many }) => ({
 
 export const userStories = pgTable('user_stories', {
   id: serial('id').primaryKey(),
-  sprintId: integer('sprint_id').references(() => sprints.id),
+  sprintId: integer('sprint_id')
+    .references(() => sprints.id, {
+      onDelete: 'set null',
+    })
+    .default(null),
   projectId: integer('project_id')
     .references(() => projects.id, { onDelete: 'cascade' })
     .notNull(),

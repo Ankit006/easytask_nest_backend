@@ -16,6 +16,7 @@ import { SprintsService } from './sprints.service';
 import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
 import {
   AssingBacklogDto,
+  UpdateSprintFormValidation,
   assingBacklogValidation,
   sprintFormValidation,
 } from './sprints.validation';
@@ -31,6 +32,13 @@ export class SprintsController {
   @UsePipes(new ZodValidationPipe(sprintFormValidation))
   async create(@Body() sprintDto: SprintDto) {
     return this.sprintsService.create(sprintDto);
+  }
+
+  @Put()
+  @MemberRoles('admin', 'moderator')
+  @UsePipes(new ZodValidationPipe(UpdateSprintFormValidation))
+  async update(@Body() sprintDto: SprintDto) {
+    return this.sprintsService.update(sprintDto);
   }
 
   @Get('/:projectId')
