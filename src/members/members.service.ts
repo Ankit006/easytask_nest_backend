@@ -8,9 +8,6 @@ import {
 } from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
 import { Request } from 'express';
-import { CacheService } from 'src/cache/cache.service';
-import { SocketEvent, customProvier, redisCacheKey } from 'src/constants';
-import { members, projects, users } from 'src/database/database.schema';
 import { NotificationGatewayGateway } from 'src/notification-gateway/notification-gateway.gateway';
 import { projectIdValidate } from 'src/projects/projects.validation';
 import { DB_CLIENT } from 'src/types';
@@ -19,6 +16,9 @@ import { handleExceptionThrow } from 'src/utils';
 import { v4 as uuid } from 'uuid';
 import { IJoinNotification } from './member.interface';
 import { MemberRoleUpdateDto } from './member.validation';
+import { CacheService } from 'src/cache/cache.service';
+import { customProvier, redisCacheKey, SocketEvent } from 'src/constants';
+import { members, projects, users } from 'src/database/database.schema';
 
 @Injectable()
 export class MembersService {
@@ -38,8 +38,8 @@ export class MembersService {
       const member = await this.dbClient.query.members.findFirst({
         where: (members, { and, eq }) =>
           and(
-            eq(members.user_id, request['user'].id),
-            eq(members.project_id, parseInt(projectId)),
+            eq(members.userId, request['user'].id),
+            eq(members.projectId, parseInt(projectId)),
           ),
         with: {
           users: {
@@ -63,8 +63,8 @@ export class MembersService {
       const memberInfo = await this.dbClient.query.members.findFirst({
         where: (members, { and, eq }) =>
           and(
-            eq(members.project_id, projectId),
-            eq(members.user_id, targetUserId),
+            eq(members.projectId, projectId),
+            eq(members.userId, targetUserId),
           ),
       });
 
@@ -124,7 +124,7 @@ export class MembersService {
   async getMembers(projectId: number) {
     try {
       const res = await this.dbClient.query.members.findMany({
-        where: eq(members.project_id, projectId),
+        where: eq(members.projectId, projectId),
         with: {
           users: {
             columns: {
@@ -145,7 +145,7 @@ export class MembersService {
   }
 
   async updateRole(memberRoleUpdateDto: MemberRoleUpdateDto) {
-    const { project_id, member_id, role } = memberRoleUpdateDto;
+    const { projectId, member_id, role } = memberRoleUpdateDto;
     if (role === 'admin') {
       throw new ForbiddenException('You cannot make a user an admin');
     }
@@ -154,10 +154,7 @@ export class MembersService {
         .update(members)
         .set({ role: role === 'member' ? 'member' : 'moderator' })
         .where(
-          and(
-            eq(members.user_id, member_id),
-            eq(members.project_id, project_id),
-          ),
+          and(eq(members.userId, member_id), eq(members.projectId, projectId)),
         );
       return { message: 'Member role updated' };
     } catch (err) {

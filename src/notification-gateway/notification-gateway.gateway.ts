@@ -21,7 +21,7 @@ export class NotificationGatewayGateway implements OnGatewayConnection {
     if (!validAuth.success) {
       client.disconnect(true);
     } else {
-      client.join(validAuth.data.user_id.toString());
+      client.join(validAuth.data.userId.toString());
     }
   }
 

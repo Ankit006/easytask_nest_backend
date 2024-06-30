@@ -1,21 +1,25 @@
-import { relations, sql } from 'drizzle-orm';
 import {
-  pgTable,
-  serial,
-  varchar,
-  text,
-  integer,
-  timestamp,
-  pgEnum,
-  primaryKey,
+  InferInsertModel,
+  InferSelectModel,
+  relations,
+  sql,
+} from 'drizzle-orm';
+import {
   date,
-  boolean,
+  integer,
+  pgEnum,
+  pgTable,
+  primaryKey,
+  serial,
+  text,
+  timestamp,
+  varchar,
 } from 'drizzle-orm/pg-core';
-import { InferSelectModel, InferInsertModel } from 'drizzle-orm';
 /////////enums
 
-export const priorityEnum = pgEnum('prority', ['low', 'medium', 'high']);
+export const priorityEnum = pgEnum('priority', ['low', 'medium', 'high']);
 export const statusEnum = pgEnum('status', [
+  'new',
   'active',
   'completed',
   'on hold',
@@ -63,10 +67,10 @@ export const projectsRelations = relations(projects, ({ many }) => ({
 
 export const members = pgTable('members', {
   id: serial('id').primaryKey(),
-  user_id: integer('user_id')
+  userId: integer('user_id')
     .references(() => users.id, { onDelete: 'cascade' })
     .notNull(),
-  project_id: integer('project_id')
+  projectId: integer('project_id')
     .references(() => projects.id, { onDelete: 'cascade' })
     .notNull(),
   role: roleEnum('role'),
@@ -78,11 +82,11 @@ export type MemberDto = InferInsertModel<typeof members>;
 
 export const membersRelations = relations(members, ({ one, many }) => ({
   users: one(users, {
-    fields: [members.user_id],
+    fields: [members.userId],
     references: [users.id],
   }),
   projects: one(projects, {
-    fields: [members.project_id],
+    fields: [members.projectId],
     references: [projects.id],
   }),
   membersToGroups: many(membersToGroups),
@@ -95,7 +99,7 @@ export const membersRelations = relations(members, ({ one, many }) => ({
 export const groups = pgTable('groups', {
   id: serial('id').primaryKey(),
   name: text('name'),
-  project_id: integer('project_id')
+  projectId: integer('project_id')
     .references(() => projects.id, { onDelete: 'cascade' })
     .notNull(),
   color: text('color').default(null),
@@ -108,7 +112,7 @@ export type GroupDto = InferInsertModel<typeof groups>;
 export const groupsRelations = relations(groups, ({ many, one }) => ({
   membersToGroups: many(membersToGroups),
   projects: one(projects, {
-    fields: [groups.project_id],
+    fields: [groups.projectId],
     references: [projects.id],
   }),
 }));
@@ -157,8 +161,8 @@ export const sprints = pgTable('sprints', {
   id: serial('id').primaryKey(),
   startDate: date('start_date'),
   endDate: date('end_date'),
-  description: text('description').notNull(),
-  isCompleted: boolean('is_completed').notNull().default(false),
+  title: text('title').notNull(),
+  description: text('description'),
   projectId: integer('project_id').references(() => projects.id, {
     onDelete: 'cascade',
   }),
@@ -181,20 +185,32 @@ export const sprintsRelations = relations(sprints, ({ one, many }) => ({
 export const userStories = pgTable('user_stories', {
   id: serial('id').primaryKey(),
   sprintId: integer('sprint_id')
-    .references(() => sprints.id)
+    .references(() => sprints.id, {
+      onDelete: 'set null',
+    })
+    .default(null),
+  projectId: integer('project_id')
+    .references(() => projects.id, { onDelete: 'cascade' })
     .notNull(),
   title: text('title'),
   description: text('description'),
   priority: priorityEnum('priority').notNull().default('low'),
-  status: statusEnum('status').notNull().default('pending'),
+  status: statusEnum('status').notNull().default('new'),
   estimateDate: date('estimate_date'),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+export type IUserStory = InferSelectModel<typeof userStories>;
+export type UserStoryDto = InferInsertModel<typeof userStories>;
 
 export const userStoriesRelations = relations(userStories, ({ one, many }) => ({
   spring: one(sprints, {
     fields: [userStories.sprintId],
     references: [sprints.id],
+  }),
+  project: one(projects, {
+    fields: [userStories.projectId],
+    references: [projects.id],
   }),
   userStoriesToMembers: many(userStoriesToMembers),
   tasks: many(tasks),
@@ -237,7 +253,7 @@ export const usertoriesToMembersRelations = relations(
 export const tasks = pgTable('tasks', {
   id: serial('id').primaryKey(),
   task: text('task').notNull(),
-  status: statusEnum('status').notNull().default('pending'),
+  status: statusEnum('status').notNull().default('new'),
   priority: priorityEnum('priority').notNull().default('low'),
   userStoryId: integer('user_story_id')
     .notNull()

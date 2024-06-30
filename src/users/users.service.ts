@@ -2,7 +2,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
-  InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { CacheService } from 'src/cache/cache.service';
@@ -25,11 +25,13 @@ export class UsersService {
           password: false,
         },
       });
+
+      if (!user) {
+        throw new UnauthorizedException('Unauthorized access');
+      }
       return user;
-    } catch {
-      throw new InternalServerErrorException(
-        'Something went wrong in the server',
-      );
+    } catch (err) {
+      handleExceptionThrow(err);
     }
   }
 
@@ -42,16 +44,16 @@ export class UsersService {
       const res = await this.dbClient.query.members.findFirst({
         where: (members, { and, eq }) =>
           and(
-            eq(members.project_id, projectId),
-            eq(members.user_id, currentUserId),
+            eq(members.projectId, projectId),
+            eq(members.userId, currentUserId),
           ),
       });
       if (res) {
         throw new ConflictException('You already joined in this project');
       }
       await this.dbClient.insert(members).values({
-        user_id: currentUserId,
-        project_id: projectId,
+        userId: currentUserId,
+        projectId: projectId,
         role: 'member',
       });
       await this.cacheService.removeSingleFromList(

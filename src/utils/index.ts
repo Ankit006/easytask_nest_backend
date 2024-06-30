@@ -2,6 +2,7 @@ import {
   ConflictException,
   InternalServerErrorException,
   NotAcceptableException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ZodIssue } from 'zod';
 
@@ -21,6 +22,8 @@ export function handleExceptionThrow(error: any) {
       throw new ConflictException(error.response.message);
     } else if (error.response.error === 'Not Found') {
       throw new NotAcceptableException(error.response.message);
+    } else if (error.response.error === 'Unauthorized') {
+      throw new UnauthorizedException(error.response.message);
     } else {
       throw new InternalServerErrorException(
         'Something went wrong in the server',
