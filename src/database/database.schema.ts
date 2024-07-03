@@ -257,9 +257,12 @@ export const tasks = pgTable('tasks', {
   priority: priorityEnum('priority').notNull().default('low'),
   userStoryId: integer('user_story_id')
     .notNull()
-    .references(() => userStories.id),
+    .references(() => userStories.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+export type ITask = InferSelectModel<typeof tasks>;
+export type TaskDto = InferInsertModel<typeof tasks>;
 
 export const tasksRelations = relations(tasks, ({ one, many }) => ({
   userStory: one(userStories, {
@@ -301,10 +304,13 @@ export const taskComments = pgTable('task_comments', {
   id: serial('id').primaryKey(),
   comment: text('comment').notNull(),
   taskId: integer('task_id')
-    .references(() => tasks.id)
+    .references(() => tasks.id, { onDelete: 'cascade' })
     .notNull(),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+export type ITaskCommnet = InferSelectModel<typeof taskComments>;
+export type TaskCommentDto = InferInsertModel<typeof taskComments>;
 
 export const taskCommnetsRelations = relations(taskComments, ({ one }) => ({
   task: one(tasks, {

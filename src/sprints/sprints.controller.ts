@@ -51,6 +51,11 @@ export class SprintsController {
     return this.sprintsService.get(sprintId);
   }
 
+  @Get('/:sprintId/userStory')
+  async userStory(@Param('sprintId', ParseIntPipe) sprintId: number) {
+    return this.sprintsService.getUserStories(sprintId);
+  }
+
   @Delete('/sprint/:sprintId')
   async remove(@Param('sprintId', ParseIntPipe) sprintId: number) {
     return this.sprintsService.remove(sprintId);

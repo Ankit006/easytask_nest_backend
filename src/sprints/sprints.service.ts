@@ -104,4 +104,15 @@ export class SprintsService {
       handleExceptionThrow(err);
     }
   }
+
+  async getUserStories(sprintId: number) {
+    try {
+      const res = await this.dbClient.query.userStories.findMany({
+        where: eq(userStories.sprintId, sprintId),
+      });
+      return res;
+    } catch (err) {
+      handleExceptionThrow(err);
+    }
+  }
 }

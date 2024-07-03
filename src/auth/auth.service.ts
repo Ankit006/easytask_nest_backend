@@ -2,7 +2,6 @@ import {
   ConflictException,
   Inject,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -11,6 +10,7 @@ import { eq } from 'drizzle-orm';
 import { customProvier } from 'src/constants';
 import { users } from 'src/database/database.schema';
 import { DB_CLIENT } from 'src/types';
+import { handleExceptionThrow } from 'src/utils';
 import { CreateUserDto, LoginUserDto } from './auth.validator';
 
 @Injectable()
@@ -43,21 +43,7 @@ export class AuthService {
 
       return { message: 'You are registered successfully', accessToken };
     } catch (error) {
-      console.log(error);
-      if (error.response && error.response.error) {
-        if (error.response.error === 'Conflict') {
-          throw new ConflictException(error.response.message);
-        } else {
-          throw new InternalServerErrorException(
-            'Something went wrong in the server',
-            { cause: error },
-          );
-        }
-      }
-      throw new InternalServerErrorException(
-        'Something went wrong in the server',
-        { cause: error },
-      );
+      handleExceptionThrow(error);
     }
   }
 
@@ -77,15 +63,7 @@ export class AuthService {
 
       return { message: 'You are registered successfully', accessToken };
     } catch (error) {
-      if (error.response) {
-        if (error.response.error === 'Not Found') {
-          throw new NotFoundException(error.response.message);
-        }
-      }
-      throw new InternalServerErrorException(
-        'Something went wrong in the server',
-        { cause: error },
-      );
+      handleExceptionThrow(error);
     }
   }
 }

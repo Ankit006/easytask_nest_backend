@@ -13,6 +13,8 @@ import { UsersModule } from './users/users.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { GroupsModule } from './groups/groups.module';
 import { UserStoriesModule } from './user-stories/user-stories.module';
+import { TasksModule } from './tasks/tasks.module';
+import { TaskCommentsModule } from './task-comments/task-comments.module';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { UserStoriesModule } from './user-stories/user-stories.module';
     NotificationsModule,
     GroupsModule,
     UserStoriesModule,
+    TasksModule,
+    TaskCommentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
