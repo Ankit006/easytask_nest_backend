@@ -6,3 +6,10 @@ export const taskValidation = z.object({
   priority: z.string().optional(),
   userStoryId: z.number(),
 });
+
+export const changeTaskStatusValidation = z.object({
+  taskId: z.number(),
+  status: z.string(),
+});
+
+export type ChangeTaskStatusDto = z.infer<typeof changeTaskStatusValidation>;

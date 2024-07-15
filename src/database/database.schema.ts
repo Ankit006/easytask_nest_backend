@@ -29,6 +29,15 @@ export const statusEnum = pgEnum('status', [
 ]);
 export const roleEnum = pgEnum('role', ['admin', 'moderator', 'member']);
 
+export type StatusType =
+  | 'new'
+  | 'active'
+  | 'completed'
+  | 'on hold'
+  | 'pending'
+  | 'canceled'
+  | 'under investigation';
+
 //////////   Users table
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),

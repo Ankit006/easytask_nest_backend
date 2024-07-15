@@ -6,10 +6,15 @@ import {
   ParseIntPipe,
   Post,
   UsePipes,
+  Put,
 } from '@nestjs/common';
 import { TaskDto } from 'src/database/database.schema';
 import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
-import { taskValidation } from './task.validationtion';
+import {
+  ChangeTaskStatusDto,
+  changeTaskStatusValidation,
+  taskValidation,
+} from './task.validationtion';
 import { TasksService } from './tasks.service';
 
 @Controller('tasks')
@@ -24,5 +29,11 @@ export class TasksController {
   @Get('/:userStoryId')
   async get(@Param('userStoryId', ParseIntPipe) userStoryId: number) {
     return await this.tasksService.get(userStoryId);
+  }
+
+  @Put('status')
+  @UsePipes(new ZodValidationPipe(changeTaskStatusValidation))
+  async changeStatus(@Body() changeTaskStatusDto: ChangeTaskStatusDto) {
+    return await this.tasksService.changeTaskStatus(changeTaskStatusDto);
   }
 }
