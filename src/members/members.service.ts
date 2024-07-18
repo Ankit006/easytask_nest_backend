@@ -8,17 +8,16 @@ import {
 } from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
 import { Request } from 'express';
+import { CacheService } from 'src/cache/cache.service';
+import { customProvier, redisCacheKey, SocketEvent } from 'src/constants';
+import { members, projects, users } from 'src/database/database.schema';
 import { NotificationGatewayGateway } from 'src/notification-gateway/notification-gateway.gateway';
-import { projectIdValidate } from 'src/projects/projects.validation';
 import { DB_CLIENT } from 'src/types';
 import { UsersService } from 'src/users/users.service';
 import { handleExceptionThrow } from 'src/utils';
 import { v4 as uuid } from 'uuid';
 import { IJoinNotification } from './member.interface';
 import { MemberRoleUpdateDto } from './member.validation';
-import { CacheService } from 'src/cache/cache.service';
-import { customProvier, redisCacheKey, SocketEvent } from 'src/constants';
-import { members, projects, users } from 'src/database/database.schema';
 
 @Injectable()
 export class MembersService {
@@ -29,17 +28,13 @@ export class MembersService {
     private userService: UsersService,
   ) {}
 
-  async member(request: Request, projectId: string) {
-    const parsedProjectId = projectIdValidate.safeParse(projectId);
-    if (parsedProjectId.success === false) {
-      throw new UnprocessableEntityException('Not a valid project id');
-    }
+  async member(request: Request, projectId: number) {
     try {
       const member = await this.dbClient.query.members.findFirst({
         where: (members, { and, eq }) =>
           and(
             eq(members.userId, request['user'].id),
-            eq(members.projectId, parseInt(projectId)),
+            eq(members.projectId, projectId),
           ),
         with: {
           users: {

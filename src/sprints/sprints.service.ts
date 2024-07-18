@@ -6,14 +6,25 @@ import {
 } from '@nestjs/common';
 import { asc, eq } from 'drizzle-orm';
 import { customProvier } from 'src/constants';
-import { SprintDto, sprints, userStories } from 'src/database/database.schema';
+import {
+  IUserStory,
+  SprintDto,
+  sprints,
+  userStories,
+  userStoriesToMembers,
+} from 'src/database/database.schema';
 import { DB_CLIENT } from 'src/types';
 import { handleExceptionThrow } from 'src/utils';
 import { AssingBacklogDto } from './sprints.validation';
+import { MembersService } from 'src/members/members.service';
+import { Request } from 'express';
 
 @Injectable()
 export class SprintsService {
-  constructor(@Inject(customProvier.DB_CLIENT) private dbClient: DB_CLIENT) {}
+  constructor(
+    @Inject(customProvier.DB_CLIENT) private dbClient: DB_CLIENT,
+    private memberService: MembersService,
+  ) {}
 
   async create({
     startDate,
@@ -105,12 +116,32 @@ export class SprintsService {
     }
   }
 
-  async getUserStories(sprintId: number) {
+  // return all userStory if user is admin or moderator. If the user is a member then
+  // it will return userStories assigned to them
+  async getUserStories(request: Request, projectId: number, sprintId: number) {
     try {
-      const res = await this.dbClient.query.userStories.findMany({
-        where: eq(userStories.sprintId, sprintId),
-      });
-      return res;
+      const currentMember = await this.memberService.member(request, projectId);
+
+      if (currentMember.role !== 'member') {
+        const res = await this.dbClient.query.userStories.findMany({
+          where: eq(userStories.sprintId, sprintId),
+        });
+        return res;
+      } else {
+        const res = await this.dbClient.query.userStoriesToMembers.findMany({
+          where: eq(userStoriesToMembers.memberId, currentMember.id),
+          with: {
+            userStory: true,
+          },
+        });
+
+        const userStoryList: IUserStory[] = [];
+
+        for (const value of res) {
+          userStoryList.push(value.userStory);
+        }
+        return userStoryList;
+      }
     } catch (err) {
       handleExceptionThrow(err);
     }

@@ -8,5 +8,6 @@ import { NotificationGatewayModule } from 'src/notification-gateway/notification
   controllers: [MembersController],
   providers: [MembersService],
   imports: [UsersModule, NotificationGatewayModule],
+  exports: [MembersService],
 })
 export class MembersModule {}

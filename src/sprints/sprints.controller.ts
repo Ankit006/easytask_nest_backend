@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Req,
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
@@ -21,6 +22,7 @@ import {
   sprintFormValidation,
 } from './sprints.validation';
 import { SprintDto } from 'src/database/database.schema';
+import { Request } from 'express';
 
 @Controller('sprints')
 @UseGuards(MemberRoleGuard)
@@ -51,9 +53,13 @@ export class SprintsController {
     return this.sprintsService.get(sprintId);
   }
 
-  @Get('/:sprintId/userStory')
-  async userStory(@Param('sprintId', ParseIntPipe) sprintId: number) {
-    return this.sprintsService.getUserStories(sprintId);
+  @Get('/:projectId/:sprintId/userStory')
+  async userStory(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Param('sprintId', ParseIntPipe) sprintId: number,
+    @Req() request: Request,
+  ) {
+    return this.sprintsService.getUserStories(request, projectId, sprintId);
   }
 
   @Delete('/sprint/:sprintId')

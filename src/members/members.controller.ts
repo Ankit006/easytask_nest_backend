@@ -28,7 +28,10 @@ export class MembersController {
   constructor(private memberService: MembersService) {}
 
   @Get('/:projectId/member')
-  async member(@Param('projectId') projectId: string, @Req() request: Request) {
+  async member(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Req() request: Request,
+  ) {
     return await this.memberService.member(request, projectId);
   }
 
