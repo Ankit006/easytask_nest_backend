@@ -27,7 +27,6 @@ export class ImageStorageService {
         url: res.url,
       };
     } catch (err) {
-      console.log(err);
       throw new InternalServerErrorException({
         message: 'Server error, unable to save the image',
       });

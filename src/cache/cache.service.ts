@@ -60,7 +60,6 @@ export class CacheService {
     try {
       await this.redis.lRem(key, 1, stringifyValue);
     } catch (err) {
-      console.log(err);
       throw new Error('something went wrong in the server');
     }
   }

@@ -18,7 +18,7 @@ export const UpdateSprintFormValidation = z.object({
 
 export const assingBacklogValidation = z.object({
   sprintId: z.number(),
-  backlogId: z.number(),
+  userStoryId: z.number(),
 });
 
 export type AssingBacklogDto = z.infer<typeof assingBacklogValidation>;

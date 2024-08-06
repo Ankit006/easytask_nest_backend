@@ -92,12 +92,12 @@ export class SprintsService {
     }
   }
 
-  async assingBackLog({ backlogId, sprintId }: AssingBacklogDto) {
+  async assingBackLog({ userStoryId, sprintId }: AssingBacklogDto) {
     try {
       await this.dbClient
         .update(userStories)
         .set({ sprintId })
-        .where(eq(userStories.id, backlogId));
+        .where(eq(userStories.id, userStoryId));
       return { message: 'Backlog is assinged' };
     } catch (err) {
       handleExceptionThrow(err);
