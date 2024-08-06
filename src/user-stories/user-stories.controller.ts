@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Req,
   UseGuards,
   UsePipes,
 } from '@nestjs/common';
@@ -19,7 +20,7 @@ import {
 } from './user-stories.validation';
 import { MemberRoles } from 'src/members/members.role';
 import { UserStoryDto } from 'src/database/database.schema';
-
+import { Request } from 'express';
 @Controller('user-stories')
 @UseGuards(MemberRoleGuard)
 export class UserStoriesController {
@@ -54,5 +55,33 @@ export class UserStoriesController {
   @MemberRoles('admin', 'moderator')
   async delete(@Param('userStoryId', ParseIntPipe) userStoryId: number) {
     return this.userStoriesService.delete(userStoryId);
+  }
+
+  @Post('/assign-member/:projectId/:userStoryId')
+  @MemberRoles('admin', 'moderator')
+  async assignMember(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Param('userStoryId', ParseIntPipe) userStoryId: number,
+    @Req() request: Request,
+  ) {
+    return this.userStoriesService.assignMember(
+      request,
+      projectId,
+      userStoryId,
+    );
+  }
+
+  @Delete('/assign-member/:projectId/:userStoryId')
+  @MemberRoles('admin', 'moderator')
+  async removeMember(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Param('userStoryId', ParseIntPipe) userStoryId: number,
+    @Req() request: Request,
+  ) {
+    return this.userStoriesService.removeMember(
+      request,
+      projectId,
+      userStoryId,
+    );
   }
 }
